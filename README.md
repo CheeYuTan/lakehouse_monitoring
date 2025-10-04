@@ -77,25 +77,4 @@ Upcoming versions will expand on:
 
 ---
 
-## 🧭 Roadmap
-
-| Version | Focus | Key Features |
-|----------|--------|---------------|
-| **v0.1** | Foundation | Auto-create monitors from `monitors_control` |
-| **v0.2** | Custom Metrics | Add `metric_templates` + `metric_bindings` |
-| **v0.3** | Visualization | Build Lakehouse DQ dashboards |
-| **v0.4** | Databricks App | UI for managing metadata interactively |
-
----
-
-## 🧑‍💻 Author
-
-**Steven Tan, Databricks Solutions Architect (APJ)**  
-Building end-to-end Lakehouse Monitoring frameworks for data reliability and governance.
-
-🔗 Medium Blog (coming soon): *Lakehouse Monitoring Series — Part 1: The Foundations*  
-📦 GitHub: [CheeYuTan/lakehouse_monitoring](https://github.com/CheeYuTan/lakehouse_monitoring)
-
----
-
 > 💡 *If you find this useful, please ⭐ the repo and follow for updates on the next release!*
