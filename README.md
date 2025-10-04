@@ -21,7 +21,9 @@ The goal of **v0.1** is to set up the baseline building blocks for automated dat
 ## ⚙️ Architecture Overview
 
 At v0.1, the solution demonstrates a **metadata-driven monitoring pattern**:
+
 monitors_control → Databricks Lakehouse Monitoring API → Automated Profile Metrics
+
 Each record in `monitors_control` defines:
 - **Catalog / Schema / Table** under monitoring  
 - **Timestamp column** and **granularity** (e.g. `1 day`)  
