@@ -1,10 +1,13 @@
 # 🧠 Lakehouse Monitoring on Databricks
 
-**Version:** v0.1 — *Foundations of Lakehouse Data Quality Monitoring*
+**Version:** v0.2 — *Custom Metrics & Metadata-Driven Quality Rules*
 
-This repository introduces a practical, incremental approach to implementing **Lakehouse Monitoring** on Databricks using only native capabilities — no external orchestration or custom metrics required (yet).
+This release extends the v0.1 foundation by introducing **custom metric templates and bindings**, allowing teams to define reusable data quality rules and automatically attach them to tables — all through metadata.
 
-The goal of **v0.1** is to set up the baseline building blocks for automated data quality profiling using **Databricks Lakehouse Monitoring API** and **Unity Catalog–managed metadata**.
+The goal of **v0.2** is to make **Lakehouse Monitoring fully metadata-driven**:
+- No more hardcoding metric logic  
+- No manual monitor creation  
+- Full lifecycle controlled from Unity Catalog tables  
 
 ---
 
@@ -12,69 +15,82 @@ The goal of **v0.1** is to set up the baseline building blocks for automated dat
 
 | Notebook | Description |
 |-----------|--------------|
-| `01_Generate_Sample_Data.ipynb` | Creates sample Delta tables (e.g., `policies`, `claims`, `premium_billing`) with realistic timestamp columns for monitoring. |
-| `02_Metadata_Tables.ipynb` | Defines and populates the `monitors_control` metadata table — the single source of truth for which tables are monitored and how. |
-| `03_Lakehouse_Monitoring_API.ipynb` | Reads from `monitors_control` and automatically creates/updates Databricks Lakehouse Monitors using the Workspace SDK. |
+| `01_generate_sample_data.ipynb` | Generates sample Delta tables (`policies`, `claims`, `premium_billing`) for demonstration. |
+| `02_metadata_table.ipynb` | Defines the foundational `monitors_control` table that drives monitor creation. |
+| `04_lakehouse_monitoring_functions.ipynb` | Defines reusable SQL functions grouped by **data quality dimensions** (Validity, Completeness, Consistency, Accuracy). |
+| `05_additional_metadata_tables.ipynb` | Adds new metadata tables — `metric_templates` and `metric_bindings` — to capture reusable metric logic and per-table associations. |
+| `06_lakehouse_monitoring_API_v0.2.ipynb` | Automatically composes monitors from `metric_bindings` and registers both ratio and detailed JSON metrics. |
 
 ---
 
 ## ⚙️ Architecture Overview
 
-At v0.1, the solution demonstrates a **metadata-driven monitoring pattern**:
+### v0.1 — Foundations
+```
+monitors_control → Databricks Lakehouse Monitoring API → Profile Metrics
+```
 
-monitors_control → Databricks Lakehouse Monitoring API → Automated Profile Metrics
+### v0.2 — Custom Metrics Layer
+```
+SQL Functions  →  Metric Templates  →  Metric Bindings  →  Monitors Control  →  Monitoring API
+   ↑                 ↑                     ↑                      ↑
+│ reusable rules  │ metric expressions  │ table attachments     │ orchestration
+```
 
-Each record in `monitors_control` defines:
-- **Catalog / Schema / Table** under monitoring  
-- **Timestamp column** and **granularity** (e.g. `1 day`)  
-- **Schedule & Timezone** for recurring jobs  
-- **Output schema** for storing generated profile metrics  
+This modular design lets you:
+- Centrally define **metric templates** once (e.g., “missing_value_ratio”).
+- Reuse them across tables via **metric bindings**.
+- Run all monitors automatically using metadata.
 
-This design allows you to add or remove monitored tables **just by editing metadata**, without touching code.
+---
+
+## 🧩 Key Metadata Tables
+
+| Table | Purpose | Example Entry |
+|--------|----------|---------------|
+| `monitors_control` | Controls which tables are monitored, with scheduling and output configuration. | Table = `claims`, Granularity = `1 day`, Enabled = `true` |
+| `metric_templates` | Defines reusable metric expressions (SQL with placeholders). | `avg(rule_missing_value_ratio_bit({VAL_COL}))` |
+| `metric_bindings` | Binds templates to actual tables and columns. | `claims` → `negative_amount_ratio`, `AMOUNT_COL = claim_amount` |
+
+---
+
+## 🧮 Example Custom Metrics
+
+| Dimension | Metric Name | Definition (SQL) | Purpose |
+|------------|--------------|------------------|----------|
+| **Completeness** | `missing_value_ratio` | `avg(rule_missing_value_ratio_bit(policy_no))` | Detects NULL or blank keys |
+| **Validity** | `negative_amount_ratio` | `avg(rule_negative_amount_ratio_bit(claim_amount))` | Checks for negative amounts |
+| **Consistency** | `inconsistent_closed_claims_ratio` | `avg(rule_inconsistent_closed_claims_ratio_bit(status, closed_at))` | Ensures closed claims have `closed_at` |
+| **Accuracy** | `premium_out_of_range_ratio` | `avg(rule_premium_out_of_range_ratio_bit(amount_due))` | Validates business range thresholds |
+
+Each metric also has a `_details_json` variant that captures offending rows as structured JSON for diagnostics.
 
 ---
 
 ## 🚀 How to Run
 
-1. **Clone this repo** or import into your Databricks workspace.  
-2. **Open** the notebooks in sequence:
-   - Run `01_Generate_Sample_Data`
-   - Run `02_Metadata_Tables`
-   - Run `03_Lakehouse_Monitoring_API`
-3. Verify new monitors in **Data → Monitoring** UI on Databricks.
-
-> 🟢 *Each monitor will automatically run profiling jobs on your sample tables.*
-
----
-
-## 🧩 Design Philosophy
-
-This project adopts a **bottom-up** approach:
-- Start with *governed metadata tables*
-- Automate API calls from metadata
-- Later introduce *custom metrics* and *dashboard visualizations*
-
-Upcoming versions will expand on:
-- v0.2 → Add custom metric templates (`metric_templates`, `metric_bindings`)  
-- v0.3 → Enrich dashboards with thresholds and DQ dimensions  
-- v0.4 → Introduce a Databricks App for metadata input and control  
+1. **Run notebooks sequentially:**
+   - `01_generate_sample_data`
+   - `02_metadata_table`
+   - `04_lakehouse_monitoring_functions`
+   - `05_additional_metadata_tables`
+   - `06_lakehouse_monitoring_API_v0.2`
+2. Verify all monitors in **Data → Monitoring** UI.
+3. Optionally, inspect the control tables in Unity Catalog:
+   ```sql
+   SELECT * FROM dbdemos_steventan.monitoring_admin.metric_templates;
+   SELECT * FROM dbdemos_steventan.monitoring_admin.metric_bindings;
+   ```
 
 ---
 
-## 🧾 Example Metadata Record
+## 🧠 Design Principles
 
-| Field | Example | Description |
-|--------|----------|-------------|
-| `table_catalog` | `dbdemos_steventan` | Catalog for monitored table |
-| `table_schema` | `lakehouse_monitoring` | Schema where data lives |
-| `table_name` | `claims` | Table to be monitored |
-| `timestamp_col` | `reported_at` | Column used for time series monitoring |
-| `granularities` | `['1 day']` | Frequency of profiling |
-| `output_schema_name` | `dbdemos_steventan.lakehouse_monitoring_results` | Where profile metrics are stored |
-| `schedule_cron` | `0 0 * * * ?` | Daily schedule |
-| `schedule_tz` | `Asia/Singapore` | Time zone |
-| `enabled` | `true` | Activation flag |
+- **Reusable Logic:** Metrics built from SQL functions, versioned under Unity Catalog.  
+- **Metadata-Driven:** No hardcoding — everything controlled via metadata tables.  
+- **Governed Automation:** One command regenerates all monitors.  
+- **Separation of Concerns:** Metric logic (templates) decoupled from table bindings.  
 
 ---
 
-> 💡 *If you find this useful, please ⭐ the repo and follow for updates on the next release!*
+> ⭐ **Star this repo** and follow for the upcoming v0.3 — Anomaly detection!
