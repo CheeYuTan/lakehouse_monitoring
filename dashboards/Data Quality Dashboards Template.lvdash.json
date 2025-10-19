@@ -1,6 +1,23 @@
 {
   "datasets": [
     {
+      "name": "a3734e7b",
+      "displayName": "Distinct Metrics (Overview)",
+      "queryLines": [
+        "SELECT DISTINCT base_catalog, base_schema, base_table, metric_base, dimension, threshold_direction, good_threshold, acceptable_threshold, description\n",
+        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
+        "GROUP BY ALL"
+      ]
+    },
+    {
+      "name": "dbe110bb",
+      "displayName": "Row Count Over Time",
+      "queryLines": [
+        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics_default_profile\n",
+        "WHERE column_name = \":table\""
+      ]
+    },
+    {
       "name": "c5a7a420",
       "displayName": "DQ View",
       "queryLines": [
@@ -22,12 +39,10 @@
       ]
     },
     {
-      "name": "a3734e7b",
-      "displayName": "Distinct Metrics (Overview)",
+      "name": "324e0930",
+      "displayName": "DQ Details View",
       "queryLines": [
-        "SELECT DISTINCT base_catalog, base_schema, base_table, metric_base, dimension, threshold_direction, good_threshold, acceptable_threshold, description\n",
-        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
-        "GROUP BY ALL"
+        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metric_details"
       ]
     },
     {
@@ -50,46 +65,6 @@
       ]
     },
     {
-      "name": "4441c816",
-      "displayName": "Issue intensity by table vs. date (Overview)",
-      "queryLines": [
-        "WITH filtered AS (\n",
-        "  SELECT base_table, window_start , metric_ratio\n",
-        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
-        "),\n",
-        "agg AS (\n",
-        "  SELECT base_table, window_start, AVG(metric_ratio) AS avg_bad\n",
-        "  FROM filtered\n",
-        "  GROUP BY base_table, window_start\n",
-        ")\n",
-        "SELECT base_table, window_start, avg_bad\n",
-        "FROM agg\n",
-        "ORDER BY base_table, window_start;"
-      ]
-    },
-    {
-      "name": "324e0930",
-      "displayName": "DQ Details View",
-      "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metric_details"
-      ]
-    },
-    {
-      "name": "8ced812f",
-      "displayName": "Distinct PKs with Violations",
-      "queryLines": [
-        "SELECT\n",
-        "  window_start,\n",
-        "  COALESCE(COUNT(DISTINCT pk), 0) AS distinct_impacted_pks,\n",
-        "  base_catalog,\n",
-        "  base_schema,\n",
-        "  base_table,\n",
-        "  metric_base\n",
-        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metric_details\n",
-        "GROUP BY ALL;"
-      ]
-    },
-    {
       "name": "c2d1a8ab",
       "displayName": "Default Profile",
       "queryLines": [
@@ -107,195 +82,6 @@
               "values": [
                 {
                   "value": "dbdemos_steventan"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "dbe110bb",
-      "displayName": "Row Count Over Time",
-      "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics_default_profile\n",
-        "WHERE column_name = \":table\""
-      ]
-    },
-    {
-      "name": "28c671b3",
-      "displayName": "Column Name Filter",
-      "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics_default_profile\n",
-        "WHERE base_catalog = :base_catalog\n",
-        "AND base_schema = :base_schema\n",
-        "AND base_table = :base_table\n",
-        "AND column_name != ':table'"
-      ],
-      "parameters": [
-        {
-          "displayName": "base_schema",
-          "keyword": "base_schema",
-          "dataType": "STRING",
-          "defaultSelection": {
-            "values": {
-              "dataType": "STRING",
-              "values": [
-                {
-                  "value": "lakehouse_monitoring"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "displayName": "base_catalog",
-          "keyword": "base_catalog",
-          "dataType": "STRING",
-          "defaultSelection": {
-            "values": {
-              "dataType": "STRING",
-              "values": [
-                {
-                  "value": "dbdemos_steventan"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "displayName": "base_table",
-          "keyword": "base_table",
-          "dataType": "STRING",
-          "defaultSelection": {
-            "values": {
-              "dataType": "STRING",
-              "values": [
-                {
-                  "value": "claims"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "a70d808e",
-      "displayName": "Rule Outcomes by Dimension (Last N Days)",
-      "queryLines": [
-        "SELECT\n",
-        "  base_catalog,\n",
-        "  base_schema,\n",
-        "  base_table,\n",
-        "  metric_base,\n",
-        "  window_start,\n",
-        "  dimension,\n",
-        "  CASE\n",
-        "    WHEN threshold_direction = 'LOWER_IS_BETTER' THEN\n",
-        "      CASE\n",
-        "        WHEN metric_ratio <= good_threshold        THEN 'Good'\n",
-        "        WHEN metric_ratio <= acceptable_threshold  THEN 'Acceptable'\n",
-        "        ELSE 'Not Acceptable'\n",
-        "      END\n",
-        "    WHEN threshold_direction = 'HIGHER_IS_BETTER' THEN\n",
-        "      CASE\n",
-        "        WHEN metric_ratio >= good_threshold        THEN 'Good'\n",
-        "        WHEN metric_ratio >= acceptable_threshold  THEN 'Acceptable'\n",
-        "        ELSE 'Not Acceptable'\n",
-        "      END\n",
-        "    ELSE 'Unknown'\n",
-        "  END AS outcome\n",
-        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
-        "WHERE dimension IS NOT NULL\n",
-        "  AND window_start >= CAST(:date_range.min AS TIMESTAMP)\n",
-        "  AND window_start <  CAST(date_add(:date_range.max, 1) AS TIMESTAMP)\n",
-        "QUALIFY ROW_NUMBER() OVER (\n",
-        "  PARTITION BY base_catalog, base_schema, base_table, metric_base\n",
-        "  ORDER BY window_start DESC\n",
-        ") = 1;"
-      ],
-      "parameters": [
-        {
-          "displayName": "date_range",
-          "keyword": "date_range",
-          "dataType": "DATE",
-          "complexType": "RANGE",
-          "defaultSelection": {
-            "range": {
-              "dataType": "DATE",
-              "min": {
-                "value": "2025-09-01T00:00:00.000"
-              },
-              "max": {
-                "value": "2025-09-30T23:59:59.999"
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "5eaea984",
-      "displayName": "Latest Average Score by Dimension (Overview)",
-      "queryLines": [
-        "WITH latest AS (\n",
-        "  SELECT\n",
-        "    dimension,\n",
-        "    CASE\n",
-        "      WHEN threshold_direction = 'LOWER_IS_BETTER'\n",
-        "        THEN GREATEST(0.0, LEAST(1.0, 1.0 - COALESCE(metric_ratio,0.0)))\n",
-        "      WHEN threshold_direction = 'HIGHER_IS_BETTER'\n",
-        "        THEN GREATEST(0.0, LEAST(1.0, COALESCE(metric_ratio,0.0)))\n",
-        "      ELSE NULL\n",
-        "    END AS pass_score\n",
-        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
-        "  WHERE window_start BETWEEN :start_date AND :end_date\n",
-        "    AND dimension IS NOT NULL\n",
-        "  QUALIFY ROW_NUMBER() OVER (\n",
-        "    PARTITION BY base_catalog, base_schema, base_table, metric_base\n",
-        "    ORDER BY window_start DESC\n",
-        "  ) = 1\n",
-        "),\n",
-        "agg AS (\n",
-        "  SELECT\n",
-        "    dimension,\n",
-        "    ROUND(AVG(pass_score) * 100, 2)       AS pass_pct,\n",
-        "    ROUND((1 - AVG(pass_score)) * 100, 2) AS fail_pct\n",
-        "  FROM latest\n",
-        "  GROUP BY dimension\n",
-        ")\n",
-        "SELECT dimension, 'Pass' AS label, pass_pct AS value FROM agg\n",
-        "UNION ALL\n",
-        "SELECT dimension, 'Fail' AS label, fail_pct AS value FROM agg\n",
-        "ORDER BY dimension, label;"
-      ],
-      "parameters": [
-        {
-          "displayName": "start_date",
-          "keyword": "start_date",
-          "dataType": "DATE",
-          "defaultSelection": {
-            "values": {
-              "dataType": "DATE",
-              "values": [
-                {
-                  "value": "2025-09-01T00:00:00.000"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "displayName": "end_date",
-          "keyword": "end_date",
-          "dataType": "DATE",
-          "defaultSelection": {
-            "values": {
-              "dataType": "DATE",
-              "values": [
-                {
-                  "value": "2025-09-30T00:00:00.000"
                 }
               ]
             }
@@ -415,6 +201,220 @@
                   "value": "premium_billing"
                 }
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "28c671b3",
+      "displayName": "Column Name Filter",
+      "queryLines": [
+        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics_default_profile\n",
+        "WHERE base_catalog = :base_catalog\n",
+        "AND base_schema = :base_schema\n",
+        "AND base_table = :base_table\n",
+        "AND column_name != ':table'"
+      ],
+      "parameters": [
+        {
+          "displayName": "base_schema",
+          "keyword": "base_schema",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "lakehouse_monitoring"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "displayName": "base_catalog",
+          "keyword": "base_catalog",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "dbdemos_steventan"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "displayName": "base_table",
+          "keyword": "base_table",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "claims"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4441c816",
+      "displayName": "Issue intensity by table vs. date (Overview)",
+      "queryLines": [
+        "WITH filtered AS (\n",
+        "  SELECT base_table, window_start , metric_ratio\n",
+        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
+        "),\n",
+        "agg AS (\n",
+        "  SELECT base_table, window_start, AVG(metric_ratio) AS avg_bad\n",
+        "  FROM filtered\n",
+        "  GROUP BY base_table, window_start\n",
+        ")\n",
+        "SELECT base_table, window_start, avg_bad\n",
+        "FROM agg\n",
+        "ORDER BY base_table, window_start;"
+      ]
+    },
+    {
+      "name": "5eaea984",
+      "displayName": "Latest Average Score by Dimension (Overview)",
+      "queryLines": [
+        "WITH latest AS (\n",
+        "  SELECT\n",
+        "    dimension,\n",
+        "    CASE\n",
+        "      WHEN threshold_direction = 'LOWER_IS_BETTER'\n",
+        "        THEN GREATEST(0.0, LEAST(1.0, 1.0 - COALESCE(metric_ratio,0.0)))\n",
+        "      WHEN threshold_direction = 'HIGHER_IS_BETTER'\n",
+        "        THEN GREATEST(0.0, LEAST(1.0, COALESCE(metric_ratio,0.0)))\n",
+        "      ELSE NULL\n",
+        "    END AS pass_score\n",
+        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
+        "  WHERE window_start BETWEEN :start_date AND :end_date\n",
+        "    AND dimension IS NOT NULL\n",
+        "  QUALIFY ROW_NUMBER() OVER (\n",
+        "    PARTITION BY base_catalog, base_schema, base_table, metric_base\n",
+        "    ORDER BY window_start DESC\n",
+        "  ) = 1\n",
+        "),\n",
+        "agg AS (\n",
+        "  SELECT\n",
+        "    dimension,\n",
+        "    ROUND(AVG(pass_score) * 100, 2)       AS pass_pct,\n",
+        "    ROUND((1 - AVG(pass_score)) * 100, 2) AS fail_pct\n",
+        "  FROM latest\n",
+        "  GROUP BY dimension\n",
+        ")\n",
+        "SELECT dimension, 'Pass' AS label, pass_pct AS value FROM agg\n",
+        "UNION ALL\n",
+        "SELECT dimension, 'Fail' AS label, fail_pct AS value FROM agg\n",
+        "ORDER BY dimension, label;"
+      ],
+      "parameters": [
+        {
+          "displayName": "start_date",
+          "keyword": "start_date",
+          "dataType": "DATE",
+          "defaultSelection": {
+            "values": {
+              "dataType": "DATE",
+              "values": [
+                {
+                  "value": "2025-09-01T00:00:00.000"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "displayName": "end_date",
+          "keyword": "end_date",
+          "dataType": "DATE",
+          "defaultSelection": {
+            "values": {
+              "dataType": "DATE",
+              "values": [
+                {
+                  "value": "2025-09-30T00:00:00.000"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8ced812f",
+      "displayName": "Distinct PKs with Violations",
+      "queryLines": [
+        "SELECT\n",
+        "  window_start,\n",
+        "  COALESCE(COUNT(DISTINCT pk), 0) AS distinct_impacted_pks,\n",
+        "  base_catalog,\n",
+        "  base_schema,\n",
+        "  base_table,\n",
+        "  metric_base\n",
+        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metric_details\n",
+        "GROUP BY ALL;"
+      ]
+    },
+    {
+      "name": "a70d808e",
+      "displayName": "Rule Outcomes by Dimension (Last N Days)",
+      "queryLines": [
+        "SELECT\n",
+        "  base_catalog,\n",
+        "  base_schema,\n",
+        "  base_table,\n",
+        "  metric_base,\n",
+        "  window_start,\n",
+        "  dimension,\n",
+        "  CASE\n",
+        "    WHEN threshold_direction = 'LOWER_IS_BETTER' THEN\n",
+        "      CASE\n",
+        "        WHEN metric_ratio <= good_threshold        THEN 'Good'\n",
+        "        WHEN metric_ratio <= acceptable_threshold  THEN 'Acceptable'\n",
+        "        ELSE 'Not Acceptable'\n",
+        "      END\n",
+        "    WHEN threshold_direction = 'HIGHER_IS_BETTER' THEN\n",
+        "      CASE\n",
+        "        WHEN metric_ratio >= good_threshold        THEN 'Good'\n",
+        "        WHEN metric_ratio >= acceptable_threshold  THEN 'Acceptable'\n",
+        "        ELSE 'Not Acceptable'\n",
+        "      END\n",
+        "    ELSE 'Unknown'\n",
+        "  END AS outcome\n",
+        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
+        "WHERE dimension IS NOT NULL\n",
+        "  AND window_start >= CAST(:date_range.min AS TIMESTAMP)\n",
+        "  AND window_start <  CAST(date_add(:date_range.max, 1) AS TIMESTAMP)\n",
+        "QUALIFY ROW_NUMBER() OVER (\n",
+        "  PARTITION BY base_catalog, base_schema, base_table, metric_base\n",
+        "  ORDER BY window_start DESC\n",
+        ") = 1;"
+      ],
+      "parameters": [
+        {
+          "displayName": "date_range",
+          "keyword": "date_range",
+          "dataType": "DATE",
+          "complexType": "RANGE",
+          "defaultSelection": {
+            "range": {
+              "dataType": "DATE",
+              "min": {
+                "value": "2025-09-01T00:00:00.000"
+              },
+              "max": {
+                "value": "2025-09-30T23:59:59.999"
+              }
             }
           }
         }
