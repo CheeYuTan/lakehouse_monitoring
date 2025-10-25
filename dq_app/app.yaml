@@ -4,12 +4,7 @@ command: [
 ]
 
 env:
-  - name: DATABRICKS_HOST
-    value: "e2-demo-field-eng.cloud.databricks.com"
-  - name: DATABRICKS_ORG_ID
-    value: "1444828305810485"
-  - name: DASHBOARD_ID
-    value: "01f097746d9d1bbbbc0d7939c55bb781"
+  # Application-specific configuration (required)
   - name: CATALOG
     value: "dbdemos_steventan"
   - name: ADMIN_SCHEMA
@@ -20,3 +15,14 @@ env:
     value: "lakehouse_monitoring_demo_results"
   - name: SQL_WAREHOUSE_ID
     value: "862f1d757f0424f7"
+  - name: DATABRICKS_ORG_ID
+    value: "1444828305810485"
+  - name: DASHBOARD_ID
+    value: "01f097746d9d1bbbbc0d7939c55bb781"
+
+# Note: The following are automatically provided by Databricks Apps:
+# - DATABRICKS_HOST: Workspace URL
+# - DATABRICKS_CLIENT_ID: Service principal client ID
+# - DATABRICKS_CLIENT_SECRET: OAuth secret
+# Reference: https://docs.databricks.com/dev-tools/databricks-apps/system-env
+
