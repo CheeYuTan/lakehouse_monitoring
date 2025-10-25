@@ -140,7 +140,6 @@ After editing `app.yaml`:
 ```bash
 cd /Users/steven.tan/Desktop/lakehouse_monitoring/dq_app
 databricks apps deploy steven-dq-app-donotdelete \
-  --profile e2-demo-field-eng \
   --source-code-path /Workspace/Users/steven.tan@databricks.com/lakehouse_monitoring_v0.1/dq_app
 ```
 

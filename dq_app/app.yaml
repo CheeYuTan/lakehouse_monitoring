@@ -14,11 +14,11 @@ env:
   - name: OUT_SCHEMA
     value: "lakehouse_monitoring_demo_results"
   - name: SQL_WAREHOUSE_ID
-    value: "862f1d757f0424f7"
+    value: "9fccdfe367b74e2c"
   - name: DATABRICKS_ORG_ID
-    value: "1444828305810485"
+    value: "1424449050723437"
   - name: DASHBOARD_ID
-    value: "01f097746d9d1bbbbc0d7939c55bb781"
+    value: "01f0b17ea61e1e1194ff37d62aea658a"
 
 # Note: The following are automatically provided by Databricks Apps:
 # - DATABRICKS_HOST: Workspace URL

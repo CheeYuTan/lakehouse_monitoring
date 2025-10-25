@@ -1,95 +1,23 @@
 {
   "datasets": [
     {
-<<<<<<< Updated upstream
-      "name": "28c671b3",
-      "displayName": "Column Name Filter",
+      "name": "a3734e7b",
+      "displayName": "Distinct Metrics (Overview)",
       "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics_default_profile\n",
-        "WHERE base_catalog = :base_catalog\n",
-        "AND base_schema = :base_schema\n",
-        "AND base_table = :base_table\n",
-        "AND column_name != ':table'"
-      ],
-      "parameters": [
-        {
-          "displayName": "base_schema",
-          "keyword": "base_schema",
-          "dataType": "STRING",
-          "defaultSelection": {
-            "values": {
-              "dataType": "STRING",
-              "values": [
-                {
-                  "value": "lakehouse_monitoring"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "displayName": "base_catalog",
-          "keyword": "base_catalog",
-          "dataType": "STRING",
-          "defaultSelection": {
-            "values": {
-              "dataType": "STRING",
-              "values": [
-                {
-                  "value": "dbdemos_steventan"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "displayName": "base_table",
-          "keyword": "base_table",
-          "dataType": "STRING",
-          "defaultSelection": {
-            "values": {
-              "dataType": "STRING",
-              "values": [
-                {
-                  "value": "claims"
-                }
-              ]
-            }
-          }
-        }
+        "SELECT DISTINCT base_catalog, base_schema, base_table, metric_base, dimension, threshold_direction, good_threshold, acceptable_threshold, description\n",
+        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics\n",
+        "GROUP BY ALL"
       ]
     },
     {
-      "name": "c2d1a8ab",
-      "displayName": "Default Profile",
-=======
-      "name": "a70d808e",
-      "displayName": "Rule Outcomes by Dimension (Last N Days)",
->>>>>>> Stashed changes
+      "name": "dbe110bb",
+      "displayName": "Row Count Over Time",
       "queryLines": [
         "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics_default_profile\n",
-        "WHERE base_catalog = :base_catalog"
-      ],
-      "parameters": [
-        {
-          "displayName": "base_catalog",
-          "keyword": "base_catalog",
-          "dataType": "STRING",
-          "defaultSelection": {
-            "values": {
-              "dataType": "STRING",
-              "values": [
-                {
-                  "value": "dbdemos_steventan"
-                }
-              ]
-            }
-          }
-        }
+        "WHERE column_name = \":table\""
       ]
     },
     {
-<<<<<<< Updated upstream
       "name": "c5a7a420",
       "displayName": "DQ View",
       "queryLines": [
@@ -111,79 +39,10 @@
       ]
     },
     {
-      "name": "5eaea984",
-      "displayName": "Latest Average Score by Dimension (Overview)",
+      "name": "324e0930",
+      "displayName": "DQ Details View",
       "queryLines": [
-        "WITH latest AS (\n",
-        "  SELECT\n",
-        "    dimension,\n",
-        "    CASE\n",
-        "      WHEN threshold_direction = 'LOWER_IS_BETTER'\n",
-        "        THEN GREATEST(0.0, LEAST(1.0, 1.0 - COALESCE(metric_ratio,0.0)))\n",
-        "      WHEN threshold_direction = 'HIGHER_IS_BETTER'\n",
-        "        THEN GREATEST(0.0, LEAST(1.0, COALESCE(metric_ratio,0.0)))\n",
-        "      ELSE NULL\n",
-        "    END AS pass_score\n",
-        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics\n",
-        "  WHERE window_start BETWEEN :start_date AND :end_date\n",
-        "    AND dimension IS NOT NULL\n",
-        "  QUALIFY ROW_NUMBER() OVER (\n",
-        "    PARTITION BY base_catalog, base_schema, base_table, metric_base\n",
-        "    ORDER BY window_start DESC\n",
-        "  ) = 1\n",
-        "),\n",
-        "agg AS (\n",
-        "  SELECT\n",
-        "    dimension,\n",
-        "    ROUND(AVG(pass_score) * 100, 2)       AS pass_pct,\n",
-        "    ROUND((1 - AVG(pass_score)) * 100, 2) AS fail_pct\n",
-        "  FROM latest\n",
-        "  GROUP BY dimension\n",
-        ")\n",
-        "SELECT dimension, 'Pass' AS label, pass_pct AS value FROM agg\n",
-        "UNION ALL\n",
-        "SELECT dimension, 'Fail' AS label, fail_pct AS value FROM agg\n",
-        "ORDER BY dimension, label;"
-      ],
-      "parameters": [
-        {
-          "displayName": "start_date",
-          "keyword": "start_date",
-          "dataType": "DATE",
-          "defaultSelection": {
-            "values": {
-              "dataType": "DATE",
-              "values": [
-                {
-                  "value": "2025-09-01T00:00:00.000"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "displayName": "end_date",
-          "keyword": "end_date",
-          "dataType": "DATE",
-          "defaultSelection": {
-            "values": {
-              "dataType": "DATE",
-              "values": [
-                {
-                  "value": "2025-09-30T00:00:00.000"
-                }
-              ]
-            }
-          }
-        }
-=======
-      "name": "a3734e7b",
-      "displayName": "Distinct Metrics (Overview)",
-      "queryLines": [
-        "SELECT DISTINCT base_catalog, base_schema, base_table, metric_base, dimension, threshold_direction, good_threshold, acceptable_threshold, description\n",
-        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
-        "GROUP BY ALL"
->>>>>>> Stashed changes
+        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metric_details"
       ]
     },
     {
@@ -206,97 +65,28 @@
       ]
     },
     {
-      "name": "dbe110bb",
-      "displayName": "Row Count Over Time",
+      "name": "c2d1a8ab",
+      "displayName": "Default Profile",
       "queryLines": [
         "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics_default_profile\n",
-        "WHERE column_name = \":table\""
-      ]
-    },
-    {
-      "name": "a3734e7b",
-      "displayName": "Distinct Metrics (Overview)",
-      "queryLines": [
-        "SELECT DISTINCT base_catalog, base_schema, base_table, metric_base, dimension, threshold_direction, good_threshold, acceptable_threshold, description\n",
-        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics\n",
-        "GROUP BY ALL"
-      ]
-    },
-    {
-      "name": "a70d808e",
-      "displayName": "Rule Outcomes by Dimension (Last N Days)",
-      "queryLines": [
-        "SELECT\n",
-        "  base_catalog,\n",
-        "  base_schema,\n",
-        "  base_table,\n",
-        "  metric_base,\n",
-        "  window_start,\n",
-        "  dimension,\n",
-        "  CASE\n",
-        "    WHEN threshold_direction = 'LOWER_IS_BETTER' THEN\n",
-        "      CASE\n",
-        "        WHEN metric_ratio <= good_threshold        THEN 'Good'\n",
-        "        WHEN metric_ratio <= acceptable_threshold  THEN 'Acceptable'\n",
-        "        ELSE 'Not Acceptable'\n",
-        "      END\n",
-        "    WHEN threshold_direction = 'HIGHER_IS_BETTER' THEN\n",
-        "      CASE\n",
-        "        WHEN metric_ratio >= good_threshold        THEN 'Good'\n",
-        "        WHEN metric_ratio >= acceptable_threshold  THEN 'Acceptable'\n",
-        "        ELSE 'Not Acceptable'\n",
-        "      END\n",
-        "    ELSE 'Unknown'\n",
-        "  END AS outcome\n",
-        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics\n",
-        "WHERE dimension IS NOT NULL\n",
-        "  AND window_start >= CAST(:date_range.min AS TIMESTAMP)\n",
-        "  AND window_start <  CAST(date_add(:date_range.max, 1) AS TIMESTAMP)\n",
-        "QUALIFY ROW_NUMBER() OVER (\n",
-        "  PARTITION BY base_catalog, base_schema, base_table, metric_base\n",
-        "  ORDER BY window_start DESC\n",
-        ") = 1;"
+        "WHERE base_catalog = :base_catalog"
       ],
       "parameters": [
         {
-          "displayName": "date_range",
-          "keyword": "date_range",
-          "dataType": "DATE",
-          "complexType": "RANGE",
+          "displayName": "base_catalog",
+          "keyword": "base_catalog",
+          "dataType": "STRING",
           "defaultSelection": {
-            "range": {
-              "dataType": "DATE",
-              "min": {
-                "value": "2025-09-01T00:00:00.000"
-              },
-              "max": {
-                "value": "2025-09-30T23:59:59.999"
-              }
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "dbdemos_steventan"
+                }
+              ]
             }
           }
         }
-      ]
-    },
-    {
-      "name": "8ced812f",
-      "displayName": "Distinct PKs with Violations",
-      "queryLines": [
-        "SELECT\n",
-        "  window_start,\n",
-        "  COALESCE(COUNT(DISTINCT pk), 0) AS distinct_impacted_pks,\n",
-        "  base_catalog,\n",
-        "  base_schema,\n",
-        "  base_table,\n",
-        "  metric_base\n",
-        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metric_details\n",
-        "GROUP BY ALL;"
-      ]
-    },
-    {
-      "name": "324e0930",
-      "displayName": "DQ Details View",
-      "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metric_details"
       ]
     },
     {
@@ -417,12 +207,10 @@
       ]
     },
     {
-<<<<<<< Updated upstream
-=======
       "name": "28c671b3",
       "displayName": "Column Name Filter",
       "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics_default_profile\n",
+        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics_default_profile\n",
         "WHERE base_catalog = :base_catalog\n",
         "AND base_schema = :base_schema\n",
         "AND base_table = :base_table\n",
@@ -477,61 +265,12 @@
       ]
     },
     {
-      "name": "8ced812f",
-      "displayName": "Distinct PKs with Violations",
-      "queryLines": [
-        "SELECT\n",
-        "  window_start,\n",
-        "  COALESCE(COUNT(DISTINCT pk), 0) AS distinct_impacted_pks,\n",
-        "  base_catalog,\n",
-        "  base_schema,\n",
-        "  base_table,\n",
-        "  metric_base\n",
-        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metric_details\n",
-        "GROUP BY ALL;"
-      ]
-    },
-    {
-      "name": "dbe110bb",
-      "displayName": "Row Count Over Time",
-      "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics_default_profile\n",
-        "WHERE column_name = \":table\""
-      ]
-    },
-    {
-      "name": "c5a7a420",
-      "displayName": "DQ View",
-      "queryLines": [
-        "SELECT *\n",
-        "FROM \n",
-        "dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
-        "\n",
-        "\n",
-        "\n",
-        "\n",
-        "\n"
-      ],
-      "columns": [
-        {
-          "displayName": "metric_ratio_good",
-          "description": "",
-          "expression": "1- metric_ratio"
-        }
-      ]
-    },
-    {
->>>>>>> Stashed changes
       "name": "4441c816",
       "displayName": "Issue intensity by table vs. date (Overview)",
       "queryLines": [
         "WITH filtered AS (\n",
         "  SELECT base_table, window_start , metric_ratio\n",
-<<<<<<< Updated upstream
         "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics\n",
-=======
-        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
->>>>>>> Stashed changes
         "),\n",
         "agg AS (\n",
         "  SELECT base_table, window_start, AVG(metric_ratio) AS avg_bad\n",
@@ -541,34 +280,6 @@
         "SELECT base_table, window_start, avg_bad\n",
         "FROM agg\n",
         "ORDER BY base_table, window_start;"
-      ]
-<<<<<<< Updated upstream
-=======
-    },
-    {
-      "name": "324e0930",
-      "displayName": "DQ Details View",
-      "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metric_details"
-      ]
-    },
-    {
-      "name": "86a94a11",
-      "displayName": "Top offenders — by table & metric (Overview)",
-      "queryLines": [
-        "WITH filtered AS (\n",
-        "  SELECT base_table, metric_base, metric_ratio\n",
-        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
-        "),\n",
-        "agg AS (\n",
-        "  SELECT base_table, metric_base, AVG(metric_ratio) AS avg_bad\n",
-        "  FROM filtered\n",
-        "  GROUP BY base_table, metric_base\n",
-        ")\n",
-        "SELECT CONCAT(base_table, ' — ', metric_base) AS series, avg_bad\n",
-        "FROM agg\n",
-        "ORDER BY avg_bad DESC\n",
-        "LIMIT 10;"
       ]
     },
     {
@@ -585,7 +296,7 @@
         "        THEN GREATEST(0.0, LEAST(1.0, COALESCE(metric_ratio,0.0)))\n",
         "      ELSE NULL\n",
         "    END AS pass_score\n",
-        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics\n",
+        "  FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics\n",
         "  WHERE window_start BETWEEN :start_date AND :end_date\n",
         "    AND dimension IS NOT NULL\n",
         "  QUALIFY ROW_NUMBER() OVER (\n",
@@ -640,33 +351,1781 @@
       ]
     },
     {
-      "name": "c2d1a8ab",
-      "displayName": "Default Profile",
+      "name": "8ced812f",
+      "displayName": "Distinct PKs with Violations",
       "queryLines": [
-        "SELECT * FROM dbdemos_steventan.lakehouse_monitoring_demo_results.dq_all_metrics_default_profile\n",
-        "WHERE base_catalog = :base_catalog"
+        "SELECT\n",
+        "  window_start,\n",
+        "  COALESCE(COUNT(DISTINCT pk), 0) AS distinct_impacted_pks,\n",
+        "  base_catalog,\n",
+        "  base_schema,\n",
+        "  base_table,\n",
+        "  metric_base\n",
+        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metric_details\n",
+        "GROUP BY ALL;"
+      ]
+    },
+    {
+      "name": "a70d808e",
+      "displayName": "Rule Outcomes by Dimension (Last N Days)",
+      "queryLines": [
+        "SELECT\n",
+        "  base_catalog,\n",
+        "  base_schema,\n",
+        "  base_table,\n",
+        "  metric_base,\n",
+        "  window_start,\n",
+        "  dimension,\n",
+        "  CASE\n",
+        "    WHEN threshold_direction = 'LOWER_IS_BETTER' THEN\n",
+        "      CASE\n",
+        "        WHEN metric_ratio <= good_threshold        THEN 'Good'\n",
+        "        WHEN metric_ratio <= acceptable_threshold  THEN 'Acceptable'\n",
+        "        ELSE 'Not Acceptable'\n",
+        "      END\n",
+        "    WHEN threshold_direction = 'HIGHER_IS_BETTER' THEN\n",
+        "      CASE\n",
+        "        WHEN metric_ratio >= good_threshold        THEN 'Good'\n",
+        "        WHEN metric_ratio >= acceptable_threshold  THEN 'Acceptable'\n",
+        "        ELSE 'Not Acceptable'\n",
+        "      END\n",
+        "    ELSE 'Unknown'\n",
+        "  END AS outcome\n",
+        "FROM dbdemos_steventan.lakehouse_monitoring_demo_results_purpose.dq_all_metrics\n",
+        "WHERE dimension IS NOT NULL\n",
+        "  AND window_start >= CAST(:date_range.min AS TIMESTAMP)\n",
+        "  AND window_start <  CAST(date_add(:date_range.max, 1) AS TIMESTAMP)\n",
+        "QUALIFY ROW_NUMBER() OVER (\n",
+        "  PARTITION BY base_catalog, base_schema, base_table, metric_base\n",
+        "  ORDER BY window_start DESC\n",
+        ") = 1;"
       ],
       "parameters": [
         {
-          "displayName": "base_catalog",
-          "keyword": "base_catalog",
-          "dataType": "STRING",
+          "displayName": "date_range",
+          "keyword": "date_range",
+          "dataType": "DATE",
+          "complexType": "RANGE",
           "defaultSelection": {
-            "values": {
-              "dataType": "STRING",
-              "values": [
-                {
-                  "value": "dbdemos_steventan"
-                }
-              ]
+            "range": {
+              "dataType": "DATE",
+              "min": {
+                "value": "2025-09-01T00:00:00.000"
+              },
+              "max": {
+                "value": "2025-09-30T23:59:59.999"
+              }
             }
           }
         }
       ]
->>>>>>> Stashed changes
     }
   ],
   "pages": [
+    {
+      "name": "c444d1b2",
+      "displayName": "Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "0f543965",
+            "queries": [
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_base_catalog",
+                "query": {
+                  "datasetName": "c5a7a420",
+                  "fields": [
+                    {
+                      "name": "base_catalog",
+                      "expression": "`base_catalog`"
+                    },
+                    {
+                      "name": "base_catalog_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_base_catalog",
+                "query": {
+                  "datasetName": "dbe110bb",
+                  "fields": [
+                    {
+                      "name": "base_catalog",
+                      "expression": "`base_catalog`"
+                    },
+                    {
+                      "name": "base_catalog_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_base_catalog",
+                "query": {
+                  "datasetName": "a70d808e",
+                  "fields": [
+                    {
+                      "name": "base_catalog",
+                      "expression": "`base_catalog`"
+                    },
+                    {
+                      "name": "base_catalog_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "base_catalog",
+                    "displayName": "base_catalog",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_base_catalog"
+                  },
+                  {
+                    "fieldName": "base_catalog",
+                    "displayName": "base_catalog",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_base_catalog"
+                  },
+                  {
+                    "fieldName": "base_catalog",
+                    "displayName": "base_catalog",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_base_catalog"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Catalog"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 4,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "0ee59ca5",
+            "queries": [
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_base_schema",
+                "query": {
+                  "datasetName": "c5a7a420",
+                  "fields": [
+                    {
+                      "name": "base_schema",
+                      "expression": "`base_schema`"
+                    },
+                    {
+                      "name": "base_schema_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_base_schema",
+                "query": {
+                  "datasetName": "dbe110bb",
+                  "fields": [
+                    {
+                      "name": "base_schema",
+                      "expression": "`base_schema`"
+                    },
+                    {
+                      "name": "base_schema_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_base_schema",
+                "query": {
+                  "datasetName": "a70d808e",
+                  "fields": [
+                    {
+                      "name": "base_schema",
+                      "expression": "`base_schema`"
+                    },
+                    {
+                      "name": "base_schema_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "base_schema",
+                    "displayName": "base_schema",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_base_schema"
+                  },
+                  {
+                    "fieldName": "base_schema",
+                    "displayName": "base_schema",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_base_schema"
+                  },
+                  {
+                    "fieldName": "base_schema",
+                    "displayName": "base_schema",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_base_schema"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Schema"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 4,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "7cb061de",
+            "queries": [
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_daily(window_start)",
+                "query": {
+                  "datasetName": "c5a7a420",
+                  "fields": [
+                    {
+                      "name": "daily(window_start)",
+                      "expression": "DATE_TRUNC(\"DAY\", `window_start`)"
+                    },
+                    {
+                      "name": "daily(window_start)_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0978b797010278043ce31bc82818b_daily(window_start)",
+                "query": {
+                  "datasetName": "4441c816",
+                  "fields": [
+                    {
+                      "name": "daily(window_start)",
+                      "expression": "DATE_TRUNC(\"DAY\", `window_start`)"
+                    },
+                    {
+                      "name": "daily(window_start)_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_daily(window_start_local)",
+                "query": {
+                  "datasetName": "dbe110bb",
+                  "fields": [
+                    {
+                      "name": "daily(window_start_local)",
+                      "expression": "DATE_TRUNC(\"DAY\", `window_start_local`)"
+                    },
+                    {
+                      "name": "daily(window_start_local)_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_date_range",
+                "query": {
+                  "datasetName": "a70d808e",
+                  "parameters": [
+                    {
+                      "name": "date_range",
+                      "keyword": "date_range"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "daily(window_start)",
+                    "displayName": "window_start",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_daily(window_start)"
+                  },
+                  {
+                    "fieldName": "daily(window_start)",
+                    "displayName": "window_start",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0978b797010278043ce31bc82818b_daily(window_start)"
+                  },
+                  {
+                    "fieldName": "daily(window_start_local)",
+                    "displayName": "window_start_local",
+                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_daily(window_start_local)"
+                  },
+                  {
+                    "parameterName": "date_range",
+                    "queryName": "parameter_dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_date_range"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Date"
+              },
+              "selection": {
+                "defaultSelection": {
+                  "range": {
+                    "dataType": "DATETIME",
+                    "min": {
+                      "value": "2025-09-01T18:04:42.000"
+                    },
+                    "max": {
+                      "value": "2025-09-30T18:04:45.999"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "803ec4a4",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c5a7a420",
+                  "fields": [
+                    {
+                      "name": "countdistinct(base_table)",
+                      "expression": "COUNT(DISTINCT `base_table`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "countdistinct(base_table)",
+                  "displayName": "Count of Unique base_table"
+                }
+              },
+              "frame": {
+                "title": "Tables Monitored",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "2a7c0c73",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a3734e7b",
+                  "fields": [
+                    {
+                      "name": "base_catalog",
+                      "expression": "`base_catalog`"
+                    },
+                    {
+                      "name": "base_schema",
+                      "expression": "`base_schema`"
+                    },
+                    {
+                      "name": "base_table",
+                      "expression": "`base_table`"
+                    },
+                    {
+                      "name": "metric_base",
+                      "expression": "`metric_base`"
+                    },
+                    {
+                      "name": "dimension",
+                      "expression": "`dimension`"
+                    },
+                    {
+                      "name": "description",
+                      "expression": "`description`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "base_catalog",
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "imageUrlTemplate": "{{ @ }}",
+                    "imageTitleTemplate": "{{ @ }}",
+                    "imageWidth": "",
+                    "imageHeight": "",
+                    "linkUrlTemplate": "{{ @ }}",
+                    "linkTextTemplate": "{{ @ }}",
+                    "linkTitleTemplate": "{{ @ }}",
+                    "linkOpenInNewTab": true,
+                    "type": "string",
+                    "displayAs": "string",
+                    "visible": true,
+                    "order": 100000,
+                    "title": "Catalog",
+                    "allowSearch": true,
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "highlightLinks": false,
+                    "useMonospaceFont": false,
+                    "preserveWhitespace": false,
+                    "cellFormat": {
+                      "default": {
+                        "foregroundColor": null
+                      },
+                      "rules": []
+                    },
+                    "displayName": "base_catalog"
+                  },
+                  {
+                    "fieldName": "base_schema",
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "imageUrlTemplate": "{{ @ }}",
+                    "imageTitleTemplate": "{{ @ }}",
+                    "imageWidth": "",
+                    "imageHeight": "",
+                    "linkUrlTemplate": "{{ @ }}",
+                    "linkTextTemplate": "{{ @ }}",
+                    "linkTitleTemplate": "{{ @ }}",
+                    "linkOpenInNewTab": true,
+                    "type": "string",
+                    "displayAs": "string",
+                    "visible": true,
+                    "order": 100001,
+                    "title": "Schema",
+                    "allowSearch": true,
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "highlightLinks": false,
+                    "useMonospaceFont": false,
+                    "preserveWhitespace": false,
+                    "displayName": "base_schema"
+                  },
+                  {
+                    "fieldName": "base_table",
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "imageUrlTemplate": "{{ @ }}",
+                    "imageTitleTemplate": "{{ @ }}",
+                    "imageWidth": "",
+                    "imageHeight": "",
+                    "linkUrlTemplate": "https://e2-demo-field-eng.cloud.databricks.com/explore/data/{{ base_catalog }}/{{ base_schema }}/{{ base_table }}",
+                    "linkTextTemplate": "{{ @ }}",
+                    "linkTitleTemplate": "{{ @ }}",
+                    "linkOpenInNewTab": true,
+                    "type": "string",
+                    "displayAs": "link",
+                    "visible": true,
+                    "order": 100002,
+                    "title": "Table",
+                    "allowSearch": true,
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "highlightLinks": false,
+                    "useMonospaceFont": false,
+                    "preserveWhitespace": false,
+                    "description": "table",
+                    "displayName": "base_table"
+                  },
+                  {
+                    "fieldName": "metric_base",
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "imageUrlTemplate": "{{ @ }}",
+                    "imageTitleTemplate": "{{ @ }}",
+                    "imageWidth": "",
+                    "imageHeight": "",
+                    "linkUrlTemplate": "{{ @ }}",
+                    "linkTextTemplate": "{{ @ }}",
+                    "linkTitleTemplate": "{{ @ }}",
+                    "linkOpenInNewTab": true,
+                    "type": "string",
+                    "displayAs": "string",
+                    "visible": true,
+                    "order": 100003,
+                    "title": "Custom DQ Rules",
+                    "allowSearch": true,
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "highlightLinks": false,
+                    "useMonospaceFont": false,
+                    "preserveWhitespace": false,
+                    "displayName": "metric_base"
+                  },
+                  {
+                    "fieldName": "dimension",
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "imageUrlTemplate": "{{ @ }}",
+                    "imageTitleTemplate": "{{ @ }}",
+                    "imageWidth": "",
+                    "imageHeight": "",
+                    "linkUrlTemplate": "{{ @ }}",
+                    "linkTextTemplate": "{{ @ }}",
+                    "linkTitleTemplate": "{{ @ }}",
+                    "linkOpenInNewTab": true,
+                    "type": "string",
+                    "displayAs": "string",
+                    "visible": true,
+                    "order": 100004,
+                    "title": "Dimension",
+                    "allowSearch": false,
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "highlightLinks": false,
+                    "useMonospaceFont": false,
+                    "preserveWhitespace": false,
+                    "displayName": "dimension"
+                  },
+                  {
+                    "fieldName": "description",
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "imageUrlTemplate": "{{ @ }}",
+                    "imageTitleTemplate": "{{ @ }}",
+                    "imageWidth": "",
+                    "imageHeight": "",
+                    "linkUrlTemplate": "{{ @ }}",
+                    "linkTextTemplate": "{{ @ }}",
+                    "linkTitleTemplate": "{{ @ }}",
+                    "linkOpenInNewTab": true,
+                    "type": "string",
+                    "displayAs": "string",
+                    "visible": true,
+                    "order": 100008,
+                    "title": "Description",
+                    "allowSearch": false,
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "highlightLinks": false,
+                    "useMonospaceFont": false,
+                    "preserveWhitespace": false,
+                    "displayName": "description"
+                  }
+                ]
+              },
+              "invisibleColumns": [
+                {
+                  "booleanValues": [
+                    "false",
+                    "true"
+                  ],
+                  "imageUrlTemplate": "{{ @ }}",
+                  "imageTitleTemplate": "{{ @ }}",
+                  "imageWidth": "",
+                  "imageHeight": "",
+                  "linkUrlTemplate": "{{ @ }}",
+                  "linkTextTemplate": "{{ @ }}",
+                  "linkTitleTemplate": "{{ @ }}",
+                  "linkOpenInNewTab": true,
+                  "name": "threshold_direction",
+                  "type": "string",
+                  "displayAs": "string",
+                  "order": 100005,
+                  "title": "threshold_direction",
+                  "allowSearch": false,
+                  "alignContent": "left",
+                  "allowHTML": false,
+                  "highlightLinks": false,
+                  "useMonospaceFont": false,
+                  "preserveWhitespace": false
+                },
+                {
+                  "numberFormat": "0.00",
+                  "booleanValues": [
+                    "false",
+                    "true"
+                  ],
+                  "imageUrlTemplate": "{{ @ }}",
+                  "imageTitleTemplate": "{{ @ }}",
+                  "imageWidth": "",
+                  "imageHeight": "",
+                  "linkUrlTemplate": "{{ @ }}",
+                  "linkTextTemplate": "{{ @ }}",
+                  "linkTitleTemplate": "{{ @ }}",
+                  "linkOpenInNewTab": true,
+                  "name": "good_threshold",
+                  "type": "float",
+                  "displayAs": "number",
+                  "order": 100006,
+                  "title": "good_threshold",
+                  "allowSearch": false,
+                  "alignContent": "right",
+                  "allowHTML": false,
+                  "highlightLinks": false,
+                  "useMonospaceFont": false,
+                  "preserveWhitespace": false
+                },
+                {
+                  "numberFormat": "0.00",
+                  "booleanValues": [
+                    "false",
+                    "true"
+                  ],
+                  "imageUrlTemplate": "{{ @ }}",
+                  "imageTitleTemplate": "{{ @ }}",
+                  "imageWidth": "",
+                  "imageHeight": "",
+                  "linkUrlTemplate": "{{ @ }}",
+                  "linkTextTemplate": "{{ @ }}",
+                  "linkTitleTemplate": "{{ @ }}",
+                  "linkOpenInNewTab": true,
+                  "name": "acceptable_threshold",
+                  "type": "float",
+                  "displayAs": "number",
+                  "order": 100007,
+                  "title": "acceptable_threshold",
+                  "allowSearch": false,
+                  "alignContent": "right",
+                  "allowHTML": false,
+                  "highlightLinks": false,
+                  "useMonospaceFont": false,
+                  "preserveWhitespace": false
+                }
+              ],
+              "allowHTMLByDefault": false,
+              "itemsPerPage": 25,
+              "paginationSize": "default",
+              "condensed": true,
+              "withRowNumber": false,
+              "frame": {
+                "showTitle": true,
+                "title": "Active Data Quality Rules Configured per Table",
+                "showDescription": true,
+                "description": "Shows which DQ rules are applied to each monitored table"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 37,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "64112572",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c5a7a420",
+                  "fields": [
+                    {
+                      "name": "countdistinct(metric_base)",
+                      "expression": "COUNT(DISTINCT `metric_base`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "countdistinct(metric_base)",
+                  "displayName": "Count of Unique metric_base"
+                }
+              },
+              "frame": {
+                "title": "DQ Rules",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "9a3a078b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c5a7a420",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)",
+                  "displayName": "Count of Records"
+                }
+              },
+              "frame": {
+                "title": "Checks Run",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "73f6cada",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c5a7a420",
+                  "fields": [
+                    {
+                      "name": "avg(metric_ratio_good)",
+                      "expression": "AVG(`metric_ratio_good`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(metric_ratio_good)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "Average metric_ratio_good"
+                }
+              },
+              "frame": {
+                "title": "Pass Rate",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 7,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "57ededb0",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c5a7a420",
+                  "fields": [
+                    {
+                      "name": "base_catalog",
+                      "expression": "`base_catalog`"
+                    },
+                    {
+                      "name": "daily(window_start)",
+                      "expression": "DATE_TRUNC(\"DAY\", `window_start`)"
+                    },
+                    {
+                      "name": "avg(metric_ratio_good)",
+                      "expression": "AVG(`metric_ratio_good`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(window_start)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Date"
+                },
+                "y": {
+                  "fieldName": "avg(metric_ratio_good)",
+                  "scale": {
+                    "type": "quantitative",
+                    "domain": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  },
+                  "axis": {
+                    "title": "% of Records Passing DQ Rules"
+                  },
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "Pass %"
+                },
+                "color": {
+                  "fieldName": "base_catalog",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "base_catalog"
+                },
+                "label": {
+                  "show": false
+                }
+              },
+              "annotations": [
+                {
+                  "type": "horizontal-line",
+                  "encodings": {
+                    "y": {
+                      "dataValue": "0.8",
+                      "dataType": "DOUBLE"
+                    },
+                    "label": {
+                      "value": "DQ Threshold"
+                    },
+                    "color": {
+                      "value": {
+                        "themeColorType": "visualizationColors",
+                        "position": 3
+                      }
+                    }
+                  }
+                }
+              ],
+              "frame": {
+                "showTitle": true,
+                "title": "Trend of Data Quality Pass Rate Over Time",
+                "showDescription": true,
+                "description": "Daily percentage of records passing all DQ checks, compared against threshold"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 19,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "4ba64650",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "86a94a11",
+                  "fields": [
+                    {
+                      "name": "series",
+                      "expression": "`series`"
+                    },
+                    {
+                      "name": "avg(avg_bad)",
+                      "expression": "AVG(`avg_bad`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "series",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "DQ Rule"
+                },
+                "y": {
+                  "fieldName": "avg(avg_bad)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "% of Bad Records"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top Data Quality Issues by Rule",
+                "showDescription": true,
+                "description": "Aggregated % of bad records by custom rule"
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 25,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "e33dc60d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4441c816",
+                  "fields": [
+                    {
+                      "name": "sum(avg_bad)",
+                      "expression": "SUM(`avg_bad`)"
+                    },
+                    {
+                      "name": "daily(window_start)",
+                      "expression": "DATE_TRUNC(\"DAY\", `window_start`)"
+                    },
+                    {
+                      "name": "base_table",
+                      "expression": "`base_table`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(window_start)",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "format": {
+                    "type": "date-time",
+                    "date": "locale-short-month",
+                    "time": "locale-hour-minute"
+                  },
+                  "displayName": "Date"
+                },
+                "y": {
+                  "fieldName": "base_table",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Table"
+                },
+                "color": {
+                  "fieldName": "sum(avg_bad)",
+                  "scale": {
+                    "type": "quantitative",
+                    "colorRamp": {
+                      "mode": "scheme",
+                      "scheme": "redyellowgreen"
+                    },
+                    "reverse": true
+                  },
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "% of Bad Records"
+                },
+                "label": {
+                  "show": false
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Daily Data Quality Issues by Table",
+                "showDescription": true,
+                "description": "Highlights when and where failures concentrate across monitored tables"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 30,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "9b07b7df",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dbe110bb",
+                  "fields": [
+                    {
+                      "name": "daily(window_start_local)",
+                      "expression": "DATE_TRUNC(\"DAY\", `window_start_local`)"
+                    },
+                    {
+                      "name": "sum(count)",
+                      "expression": "SUM(`count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(window_start_local)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "axis": {
+                    "title": "Date"
+                  },
+                  "displayName": "Date"
+                },
+                "y": {
+                  "fieldName": "sum(count)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "title": "Number of Rows"
+                  },
+                  "displayName": "Number of Rows"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Row Count Over Time",
+                "showDescription": true,
+                "description": "Track how the volume of data has been changing over time"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 13,
+            "width": 5,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "09fca532",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Data Volume\n",
+                "\n",
+                "Identify changes in data volume by tracking the row count of the table"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 13,
+            "width": 1,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "975bd013",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Data Quality Overview\n",
+                "\n",
+                "<span style=\"font-size: 14px;\">This dashboard gives a summary of data quality across all monitored tables.  </span><br><span style=\"font-size: 14px;\">Use it to see coverage (tables, rules, checks) and track overall pass rate trends.</span>\n",
+                "\n",
+                "- <span style=\"font-size: 14px;\">Volume & Trends → Spot unusual spikes or drops in row counts.  </span>\n",
+                "- <span style=\"font-size: 14px;\">Pass Rate → Monitor daily % of records passing all checks.  </span>\n",
+                "- <span style=\"font-size: 14px;\">Top Issues → Identify which rules and tables drive most violations.  </span>\n",
+                "\n",
+                "<span style=\"font-size: 14px;\">**Tip:&#32;**</span><span style=\"font-size: 14px;\"> Use this page for high-level monitoring & prioritization.  For root cause analysis, switch to the </span><span style=\"font-size: 14px;\">*Drill Down*</span><span style=\"font-size: 14px;\"> tab.</span>"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "df6528b8",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a70d808e",
+                  "fields": [
+                    {
+                      "name": "outcome",
+                      "expression": "`outcome`"
+                    },
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    },
+                    {
+                      "name": "dimension",
+                      "expression": "`dimension`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count(*)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count of Records"
+                },
+                "y": {
+                  "fieldName": "dimension",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "axis": {
+                    "hideTitle": true,
+                    "hideLabels": false
+                  },
+                  "displayName": "dimension"
+                },
+                "color": {
+                  "fieldName": "outcome",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Good",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      },
+                      {
+                        "value": "Acceptable",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 2
+                        }
+                      },
+                      {
+                        "value": "Not Acceptable",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 4
+                        }
+                      }
+                    ],
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "Not Acceptable",
+                        "Acceptable",
+                        "Good"
+                      ]
+                    }
+                  },
+                  "legend": {
+                    "hideTitle": true,
+                    "hide": false
+                  },
+                  "displayName": "outcome"
+                },
+                "label": {
+                  "show": false
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Rule Outcomes by Dimension"
+              },
+              "mark": {
+                "layout": "stack"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 9,
+            "width": 2,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "21c59326",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5eaea984",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "`value`"
+                    },
+                    {
+                      "name": "label",
+                      "expression": "`label`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`dimension` IN ('VALIDITY')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "value",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "value"
+                },
+                "color": {
+                  "fieldName": "label",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Fail",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 4
+                        }
+                      },
+                      {
+                        "value": "Pass",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      }
+                    ]
+                  },
+                  "legend": {
+                    "hideTitle": true,
+                    "hide": true
+                  },
+                  "displayName": "label"
+                },
+                "label": {
+                  "show": true
+                },
+                "extra": [
+                  {
+                    "fieldName": "value",
+                    "displayName": "value"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Validity Rate"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 1,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "b4f2127d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5eaea984",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "`value`"
+                    },
+                    {
+                      "name": "label",
+                      "expression": "`label`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`dimension` IN ('COMPLETENESS')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "value",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "value"
+                },
+                "color": {
+                  "fieldName": "label",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Fail",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 4
+                        }
+                      },
+                      {
+                        "value": "Pass",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      }
+                    ]
+                  },
+                  "legend": {
+                    "hideTitle": true,
+                    "hide": true
+                  },
+                  "displayName": "label"
+                },
+                "label": {
+                  "show": true
+                },
+                "extra": [
+                  {
+                    "fieldName": "value",
+                    "displayName": "value"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Completeness Rate"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 9,
+            "width": 1,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "749d7f6b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5eaea984",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "`value`"
+                    },
+                    {
+                      "name": "label",
+                      "expression": "`label`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`dimension` IN ('CONSISTENCY')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "value",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "value"
+                },
+                "color": {
+                  "fieldName": "label",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Fail",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 4
+                        }
+                      },
+                      {
+                        "value": "Pass",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      }
+                    ]
+                  },
+                  "legend": {
+                    "hideTitle": true,
+                    "hide": true
+                  },
+                  "displayName": "label"
+                },
+                "label": {
+                  "show": true
+                },
+                "extra": [
+                  {
+                    "fieldName": "value",
+                    "displayName": "value"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Consistency Rate"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 9,
+            "width": 1,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "6c72fd0d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5eaea984",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "`value`"
+                    },
+                    {
+                      "name": "label",
+                      "expression": "`label`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`dimension` IN ('ACCURACY')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "value",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "value"
+                },
+                "color": {
+                  "fieldName": "label",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Fail",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 4
+                        }
+                      },
+                      {
+                        "value": "Pass",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      }
+                    ]
+                  },
+                  "legend": {
+                    "hideTitle": true,
+                    "hide": true
+                  },
+                  "displayName": "label"
+                },
+                "label": {
+                  "show": true
+                },
+                "extra": [
+                  {
+                    "fieldName": "value",
+                    "displayName": "value"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": " Accuracy Rate"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 9,
+            "width": 1,
+            "height": 4
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
     {
       "name": "7c0e0664",
       "displayName": "Drill Down",
@@ -3630,1710 +5089,6 @@
             "x": 4,
             "y": 29,
             "width": 2,
-            "height": 4
-          }
-        }
-      ],
-      "pageType": "PAGE_TYPE_CANVAS"
-    },
-    {
-      "name": "c444d1b2",
-      "displayName": "Overview",
-      "layout": [
-        {
-          "widget": {
-            "name": "0f543965",
-            "queries": [
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_base_catalog",
-                "query": {
-                  "datasetName": "c5a7a420",
-                  "fields": [
-                    {
-                      "name": "base_catalog",
-                      "expression": "`base_catalog`"
-                    },
-                    {
-                      "name": "base_catalog_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_base_catalog",
-                "query": {
-                  "datasetName": "dbe110bb",
-                  "fields": [
-                    {
-                      "name": "base_catalog",
-                      "expression": "`base_catalog`"
-                    },
-                    {
-                      "name": "base_catalog_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_base_catalog",
-                "query": {
-                  "datasetName": "a70d808e",
-                  "fields": [
-                    {
-                      "name": "base_catalog",
-                      "expression": "`base_catalog`"
-                    },
-                    {
-                      "name": "base_catalog_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "base_catalog",
-                    "displayName": "base_catalog",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_base_catalog"
-                  },
-                  {
-                    "fieldName": "base_catalog",
-                    "displayName": "base_catalog",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_base_catalog"
-                  },
-                  {
-                    "fieldName": "base_catalog",
-                    "displayName": "base_catalog",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_base_catalog"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "showDescription": false,
-                "title": "Catalog"
-              }
-            }
-          },
-          "position": {
-            "x": 2,
-            "y": 4,
-            "width": 2,
-            "height": 1
-          }
-        },
-        {
-          "widget": {
-            "name": "0ee59ca5",
-            "queries": [
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_base_schema",
-                "query": {
-                  "datasetName": "c5a7a420",
-                  "fields": [
-                    {
-                      "name": "base_schema",
-                      "expression": "`base_schema`"
-                    },
-                    {
-                      "name": "base_schema_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_base_schema",
-                "query": {
-                  "datasetName": "dbe110bb",
-                  "fields": [
-                    {
-                      "name": "base_schema",
-                      "expression": "`base_schema`"
-                    },
-                    {
-                      "name": "base_schema_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_base_schema",
-                "query": {
-                  "datasetName": "a70d808e",
-                  "fields": [
-                    {
-                      "name": "base_schema",
-                      "expression": "`base_schema`"
-                    },
-                    {
-                      "name": "base_schema_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "base_schema",
-                    "displayName": "base_schema",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_base_schema"
-                  },
-                  {
-                    "fieldName": "base_schema",
-                    "displayName": "base_schema",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_base_schema"
-                  },
-                  {
-                    "fieldName": "base_schema",
-                    "displayName": "base_schema",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_base_schema"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "showDescription": false,
-                "title": "Schema"
-              }
-            }
-          },
-          "position": {
-            "x": 4,
-            "y": 4,
-            "width": 2,
-            "height": 1
-          }
-        },
-        {
-          "widget": {
-            "name": "7cb061de",
-            "queries": [
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_daily(window_start)",
-                "query": {
-                  "datasetName": "c5a7a420",
-                  "fields": [
-                    {
-                      "name": "daily(window_start)",
-                      "expression": "DATE_TRUNC(\"DAY\", `window_start`)"
-                    },
-                    {
-                      "name": "daily(window_start)_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0978b797010278043ce31bc82818b_daily(window_start)",
-                "query": {
-                  "datasetName": "4441c816",
-                  "fields": [
-                    {
-                      "name": "daily(window_start)",
-                      "expression": "DATE_TRUNC(\"DAY\", `window_start`)"
-                    },
-                    {
-                      "name": "daily(window_start)_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_daily(window_start_local)",
-                "query": {
-                  "datasetName": "dbe110bb",
-                  "fields": [
-                    {
-                      "name": "daily(window_start_local)",
-                      "expression": "DATE_TRUNC(\"DAY\", `window_start_local`)"
-                    },
-                    {
-                      "name": "daily(window_start_local)_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "parameter_dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_date_range",
-                "query": {
-                  "datasetName": "a70d808e",
-                  "parameters": [
-                    {
-                      "name": "date_range",
-                      "keyword": "date_range"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "filter-date-range-picker",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "daily(window_start)",
-                    "displayName": "window_start",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0977e701e1696a3583608171113c0_daily(window_start)"
-                  },
-                  {
-                    "fieldName": "daily(window_start)",
-                    "displayName": "window_start",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0978b797010278043ce31bc82818b_daily(window_start)"
-                  },
-                  {
-                    "fieldName": "daily(window_start_local)",
-                    "displayName": "window_start_local",
-                    "queryName": "dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f0987a6a5d1a8ab04546d10009d49a_daily(window_start_local)"
-                  },
-                  {
-                    "parameterName": "date_range",
-                    "queryName": "parameter_dashboards/01f097746d9d1bbbbc0d7939c55bb781/datasets/01f09b87c91c120db4bfab22db5ea226_date_range"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "showDescription": false,
-                "title": "Date"
-              },
-              "selection": {
-                "defaultSelection": {
-                  "range": {
-                    "dataType": "DATETIME",
-                    "min": {
-                      "value": "2025-09-01T18:04:42.000"
-                    },
-                    "max": {
-                      "value": "2025-09-30T18:04:45.999"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 4,
-            "width": 2,
-            "height": 1
-          }
-        },
-        {
-          "widget": {
-            "name": "803ec4a4",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "c5a7a420",
-                  "fields": [
-                    {
-                      "name": "countdistinct(base_table)",
-                      "expression": "COUNT(DISTINCT `base_table`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "countdistinct(base_table)",
-                  "displayName": "Count of Unique base_table"
-                }
-              },
-              "frame": {
-                "title": "Tables Monitored",
-                "showTitle": true
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 5,
-            "width": 3,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "2a7c0c73",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "a3734e7b",
-                  "fields": [
-                    {
-                      "name": "base_catalog",
-                      "expression": "`base_catalog`"
-                    },
-                    {
-                      "name": "base_schema",
-                      "expression": "`base_schema`"
-                    },
-                    {
-                      "name": "base_table",
-                      "expression": "`base_table`"
-                    },
-                    {
-                      "name": "metric_base",
-                      "expression": "`metric_base`"
-                    },
-                    {
-                      "name": "dimension",
-                      "expression": "`dimension`"
-                    },
-                    {
-                      "name": "description",
-                      "expression": "`description`"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "version": 1,
-              "widgetType": "table",
-              "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "base_catalog",
-                    "booleanValues": [
-                      "false",
-                      "true"
-                    ],
-                    "imageUrlTemplate": "{{ @ }}",
-                    "imageTitleTemplate": "{{ @ }}",
-                    "imageWidth": "",
-                    "imageHeight": "",
-                    "linkUrlTemplate": "{{ @ }}",
-                    "linkTextTemplate": "{{ @ }}",
-                    "linkTitleTemplate": "{{ @ }}",
-                    "linkOpenInNewTab": true,
-                    "type": "string",
-                    "displayAs": "string",
-                    "visible": true,
-                    "order": 100000,
-                    "title": "Catalog",
-                    "allowSearch": true,
-                    "alignContent": "left",
-                    "allowHTML": false,
-                    "highlightLinks": false,
-                    "useMonospaceFont": false,
-                    "preserveWhitespace": false,
-                    "cellFormat": {
-                      "default": {
-                        "foregroundColor": null
-                      },
-                      "rules": []
-                    },
-                    "displayName": "base_catalog"
-                  },
-                  {
-                    "fieldName": "base_schema",
-                    "booleanValues": [
-                      "false",
-                      "true"
-                    ],
-                    "imageUrlTemplate": "{{ @ }}",
-                    "imageTitleTemplate": "{{ @ }}",
-                    "imageWidth": "",
-                    "imageHeight": "",
-                    "linkUrlTemplate": "{{ @ }}",
-                    "linkTextTemplate": "{{ @ }}",
-                    "linkTitleTemplate": "{{ @ }}",
-                    "linkOpenInNewTab": true,
-                    "type": "string",
-                    "displayAs": "string",
-                    "visible": true,
-                    "order": 100001,
-                    "title": "Schema",
-                    "allowSearch": true,
-                    "alignContent": "left",
-                    "allowHTML": false,
-                    "highlightLinks": false,
-                    "useMonospaceFont": false,
-                    "preserveWhitespace": false,
-                    "displayName": "base_schema"
-                  },
-                  {
-                    "fieldName": "base_table",
-                    "booleanValues": [
-                      "false",
-                      "true"
-                    ],
-                    "imageUrlTemplate": "{{ @ }}",
-                    "imageTitleTemplate": "{{ @ }}",
-                    "imageWidth": "",
-                    "imageHeight": "",
-                    "linkUrlTemplate": "https://e2-demo-field-eng.cloud.databricks.com/explore/data/{{ base_catalog }}/{{ base_schema }}/{{ base_table }}",
-                    "linkTextTemplate": "{{ @ }}",
-                    "linkTitleTemplate": "{{ @ }}",
-                    "linkOpenInNewTab": true,
-                    "type": "string",
-                    "displayAs": "link",
-                    "visible": true,
-                    "order": 100002,
-                    "title": "Table",
-                    "allowSearch": true,
-                    "alignContent": "left",
-                    "allowHTML": false,
-                    "highlightLinks": false,
-                    "useMonospaceFont": false,
-                    "preserveWhitespace": false,
-                    "description": "table",
-                    "displayName": "base_table"
-                  },
-                  {
-                    "fieldName": "metric_base",
-                    "booleanValues": [
-                      "false",
-                      "true"
-                    ],
-                    "imageUrlTemplate": "{{ @ }}",
-                    "imageTitleTemplate": "{{ @ }}",
-                    "imageWidth": "",
-                    "imageHeight": "",
-                    "linkUrlTemplate": "{{ @ }}",
-                    "linkTextTemplate": "{{ @ }}",
-                    "linkTitleTemplate": "{{ @ }}",
-                    "linkOpenInNewTab": true,
-                    "type": "string",
-                    "displayAs": "string",
-                    "visible": true,
-                    "order": 100003,
-                    "title": "Custom DQ Rules",
-                    "allowSearch": true,
-                    "alignContent": "left",
-                    "allowHTML": false,
-                    "highlightLinks": false,
-                    "useMonospaceFont": false,
-                    "preserveWhitespace": false,
-                    "displayName": "metric_base"
-                  },
-                  {
-                    "fieldName": "dimension",
-                    "booleanValues": [
-                      "false",
-                      "true"
-                    ],
-                    "imageUrlTemplate": "{{ @ }}",
-                    "imageTitleTemplate": "{{ @ }}",
-                    "imageWidth": "",
-                    "imageHeight": "",
-                    "linkUrlTemplate": "{{ @ }}",
-                    "linkTextTemplate": "{{ @ }}",
-                    "linkTitleTemplate": "{{ @ }}",
-                    "linkOpenInNewTab": true,
-                    "type": "string",
-                    "displayAs": "string",
-                    "visible": true,
-                    "order": 100004,
-                    "title": "Dimension",
-                    "allowSearch": false,
-                    "alignContent": "left",
-                    "allowHTML": false,
-                    "highlightLinks": false,
-                    "useMonospaceFont": false,
-                    "preserveWhitespace": false,
-                    "displayName": "dimension"
-                  },
-                  {
-                    "fieldName": "description",
-                    "booleanValues": [
-                      "false",
-                      "true"
-                    ],
-                    "imageUrlTemplate": "{{ @ }}",
-                    "imageTitleTemplate": "{{ @ }}",
-                    "imageWidth": "",
-                    "imageHeight": "",
-                    "linkUrlTemplate": "{{ @ }}",
-                    "linkTextTemplate": "{{ @ }}",
-                    "linkTitleTemplate": "{{ @ }}",
-                    "linkOpenInNewTab": true,
-                    "type": "string",
-                    "displayAs": "string",
-                    "visible": true,
-                    "order": 100008,
-                    "title": "Description",
-                    "allowSearch": false,
-                    "alignContent": "left",
-                    "allowHTML": false,
-                    "highlightLinks": false,
-                    "useMonospaceFont": false,
-                    "preserveWhitespace": false,
-                    "displayName": "description"
-                  }
-                ]
-              },
-              "invisibleColumns": [
-                {
-                  "booleanValues": [
-                    "false",
-                    "true"
-                  ],
-                  "imageUrlTemplate": "{{ @ }}",
-                  "imageTitleTemplate": "{{ @ }}",
-                  "imageWidth": "",
-                  "imageHeight": "",
-                  "linkUrlTemplate": "{{ @ }}",
-                  "linkTextTemplate": "{{ @ }}",
-                  "linkTitleTemplate": "{{ @ }}",
-                  "linkOpenInNewTab": true,
-                  "name": "threshold_direction",
-                  "type": "string",
-                  "displayAs": "string",
-                  "order": 100005,
-                  "title": "threshold_direction",
-                  "allowSearch": false,
-                  "alignContent": "left",
-                  "allowHTML": false,
-                  "highlightLinks": false,
-                  "useMonospaceFont": false,
-                  "preserveWhitespace": false
-                },
-                {
-                  "numberFormat": "0.00",
-                  "booleanValues": [
-                    "false",
-                    "true"
-                  ],
-                  "imageUrlTemplate": "{{ @ }}",
-                  "imageTitleTemplate": "{{ @ }}",
-                  "imageWidth": "",
-                  "imageHeight": "",
-                  "linkUrlTemplate": "{{ @ }}",
-                  "linkTextTemplate": "{{ @ }}",
-                  "linkTitleTemplate": "{{ @ }}",
-                  "linkOpenInNewTab": true,
-                  "name": "good_threshold",
-                  "type": "float",
-                  "displayAs": "number",
-                  "order": 100006,
-                  "title": "good_threshold",
-                  "allowSearch": false,
-                  "alignContent": "right",
-                  "allowHTML": false,
-                  "highlightLinks": false,
-                  "useMonospaceFont": false,
-                  "preserveWhitespace": false
-                },
-                {
-                  "numberFormat": "0.00",
-                  "booleanValues": [
-                    "false",
-                    "true"
-                  ],
-                  "imageUrlTemplate": "{{ @ }}",
-                  "imageTitleTemplate": "{{ @ }}",
-                  "imageWidth": "",
-                  "imageHeight": "",
-                  "linkUrlTemplate": "{{ @ }}",
-                  "linkTextTemplate": "{{ @ }}",
-                  "linkTitleTemplate": "{{ @ }}",
-                  "linkOpenInNewTab": true,
-                  "name": "acceptable_threshold",
-                  "type": "float",
-                  "displayAs": "number",
-                  "order": 100007,
-                  "title": "acceptable_threshold",
-                  "allowSearch": false,
-                  "alignContent": "right",
-                  "allowHTML": false,
-                  "highlightLinks": false,
-                  "useMonospaceFont": false,
-                  "preserveWhitespace": false
-                }
-              ],
-              "allowHTMLByDefault": false,
-              "itemsPerPage": 25,
-              "paginationSize": "default",
-              "condensed": true,
-              "withRowNumber": false,
-              "frame": {
-                "showTitle": true,
-                "title": "Active Data Quality Rules Configured per Table",
-                "showDescription": true,
-                "description": "Shows which DQ rules are applied to each monitored table"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 37,
-            "width": 6,
-            "height": 4
-          }
-        },
-        {
-          "widget": {
-            "name": "64112572",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "c5a7a420",
-                  "fields": [
-                    {
-                      "name": "countdistinct(metric_base)",
-                      "expression": "COUNT(DISTINCT `metric_base`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "countdistinct(metric_base)",
-                  "displayName": "Count of Unique metric_base"
-                }
-              },
-              "frame": {
-                "title": "DQ Rules",
-                "showTitle": true
-              }
-            }
-          },
-          "position": {
-            "x": 3,
-            "y": 5,
-            "width": 3,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "9a3a078b",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "c5a7a420",
-                  "fields": [
-                    {
-                      "name": "count(*)",
-                      "expression": "COUNT(`*`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "count(*)",
-                  "displayName": "Count of Records"
-                }
-              },
-              "frame": {
-                "title": "Checks Run",
-                "showTitle": true
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 7,
-            "width": 3,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "73f6cada",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "c5a7a420",
-                  "fields": [
-                    {
-                      "name": "avg(metric_ratio_good)",
-                      "expression": "AVG(`metric_ratio_good`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "avg(metric_ratio_good)",
-                  "format": {
-                    "type": "number-percent",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  },
-                  "displayName": "Average metric_ratio_good"
-                }
-              },
-              "frame": {
-                "title": "Pass Rate",
-                "showTitle": true
-              }
-            }
-          },
-          "position": {
-            "x": 3,
-            "y": 7,
-            "width": 3,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "57ededb0",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "c5a7a420",
-                  "fields": [
-                    {
-                      "name": "base_catalog",
-                      "expression": "`base_catalog`"
-                    },
-                    {
-                      "name": "daily(window_start)",
-                      "expression": "DATE_TRUNC(\"DAY\", `window_start`)"
-                    },
-                    {
-                      "name": "avg(metric_ratio_good)",
-                      "expression": "AVG(`metric_ratio_good`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "line",
-              "encodings": {
-                "x": {
-                  "fieldName": "daily(window_start)",
-                  "scale": {
-                    "type": "temporal"
-                  },
-                  "displayName": "Date"
-                },
-                "y": {
-                  "fieldName": "avg(metric_ratio_good)",
-                  "scale": {
-                    "type": "quantitative",
-                    "domain": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  },
-                  "axis": {
-                    "title": "% of Records Passing DQ Rules"
-                  },
-                  "format": {
-                    "type": "number-percent",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  },
-                  "displayName": "Pass %"
-                },
-                "color": {
-                  "fieldName": "base_catalog",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "displayName": "base_catalog"
-                },
-                "label": {
-                  "show": false
-                }
-              },
-              "annotations": [
-                {
-                  "type": "horizontal-line",
-                  "encodings": {
-                    "y": {
-                      "dataValue": "0.8",
-                      "dataType": "DOUBLE"
-                    },
-                    "label": {
-                      "value": "DQ Threshold"
-                    },
-                    "color": {
-                      "value": {
-                        "themeColorType": "visualizationColors",
-                        "position": 3
-                      }
-                    }
-                  }
-                }
-              ],
-              "frame": {
-                "showTitle": true,
-                "title": "Trend of Data Quality Pass Rate Over Time",
-                "showDescription": true,
-                "description": "Daily percentage of records passing all DQ checks, compared against threshold"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 19,
-            "width": 6,
-            "height": 6
-          }
-        },
-        {
-          "widget": {
-            "name": "4ba64650",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "86a94a11",
-                  "fields": [
-                    {
-                      "name": "series",
-                      "expression": "`series`"
-                    },
-                    {
-                      "name": "avg(avg_bad)",
-                      "expression": "AVG(`avg_bad`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "bar",
-              "encodings": {
-                "x": {
-                  "fieldName": "series",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "displayName": "DQ Rule"
-                },
-                "y": {
-                  "fieldName": "avg(avg_bad)",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "format": {
-                    "type": "number-percent",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  },
-                  "displayName": "% of Bad Records"
-                },
-                "label": {
-                  "show": true
-                }
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Top Data Quality Issues by Rule",
-                "showDescription": true,
-                "description": "Aggregated % of bad records by custom rule"
-              },
-              "mark": {
-                "colors": [
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 4
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 2
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 3
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 4
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 5
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 6
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 7
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 8
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 9
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 10
-                  }
-                ]
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 25,
-            "width": 6,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "e33dc60d",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "4441c816",
-                  "fields": [
-                    {
-                      "name": "sum(avg_bad)",
-                      "expression": "SUM(`avg_bad`)"
-                    },
-                    {
-                      "name": "daily(window_start)",
-                      "expression": "DATE_TRUNC(\"DAY\", `window_start`)"
-                    },
-                    {
-                      "name": "base_table",
-                      "expression": "`base_table`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "heatmap",
-              "encodings": {
-                "x": {
-                  "fieldName": "daily(window_start)",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "format": {
-                    "type": "date-time",
-                    "date": "locale-short-month",
-                    "time": "locale-hour-minute"
-                  },
-                  "displayName": "Date"
-                },
-                "y": {
-                  "fieldName": "base_table",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "displayName": "Table"
-                },
-                "color": {
-                  "fieldName": "sum(avg_bad)",
-                  "scale": {
-                    "type": "quantitative",
-                    "colorRamp": {
-                      "mode": "scheme",
-                      "scheme": "redyellowgreen"
-                    },
-                    "reverse": true
-                  },
-                  "format": {
-                    "type": "number-percent",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  },
-                  "displayName": "% of Bad Records"
-                },
-                "label": {
-                  "show": false
-                }
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Daily Data Quality Issues by Table",
-                "showDescription": true,
-                "description": "Highlights when and where failures concentrate across monitored tables"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 30,
-            "width": 6,
-            "height": 7
-          }
-        },
-        {
-          "widget": {
-            "name": "9b07b7df",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "dbe110bb",
-                  "fields": [
-                    {
-                      "name": "daily(window_start_local)",
-                      "expression": "DATE_TRUNC(\"DAY\", `window_start_local`)"
-                    },
-                    {
-                      "name": "sum(count)",
-                      "expression": "SUM(`count`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "bar",
-              "encodings": {
-                "x": {
-                  "fieldName": "daily(window_start_local)",
-                  "scale": {
-                    "type": "temporal"
-                  },
-                  "axis": {
-                    "title": "Date"
-                  },
-                  "displayName": "Date"
-                },
-                "y": {
-                  "fieldName": "sum(count)",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "axis": {
-                    "title": "Number of Rows"
-                  },
-                  "displayName": "Number of Rows"
-                }
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Row Count Over Time",
-                "showDescription": true,
-                "description": "Track how the volume of data has been changing over time"
-              }
-            }
-          },
-          "position": {
-            "x": 1,
-            "y": 13,
-            "width": 5,
-            "height": 6
-          }
-        },
-        {
-          "widget": {
-            "name": "09fca532",
-            "multilineTextboxSpec": {
-              "lines": [
-                "## Data Volume\n",
-                "\n",
-                "Identify changes in data volume by tracking the row count of the table"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 13,
-            "width": 1,
-            "height": 6
-          }
-        },
-        {
-          "widget": {
-            "name": "975bd013",
-            "multilineTextboxSpec": {
-              "lines": [
-                "# Data Quality Overview\n",
-                "\n",
-                "<span style=\"font-size: 14px;\">This dashboard gives a summary of data quality across all monitored tables.  </span><br><span style=\"font-size: 14px;\">Use it to see coverage (tables, rules, checks) and track overall pass rate trends.</span>\n",
-                "\n",
-                "- <span style=\"font-size: 14px;\">Volume & Trends → Spot unusual spikes or drops in row counts.  </span>\n",
-                "- <span style=\"font-size: 14px;\">Pass Rate → Monitor daily % of records passing all checks.  </span>\n",
-                "- <span style=\"font-size: 14px;\">Top Issues → Identify which rules and tables drive most violations.  </span>\n",
-                "\n",
-                "<span style=\"font-size: 14px;\">**Tip:&#32;**</span><span style=\"font-size: 14px;\"> Use this page for high-level monitoring & prioritization.  For root cause analysis, switch to the </span><span style=\"font-size: 14px;\">*Drill Down*</span><span style=\"font-size: 14px;\"> tab.</span>"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 0,
-            "width": 6,
-            "height": 4
-          }
-        },
-        {
-          "widget": {
-            "name": "df6528b8",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "a70d808e",
-                  "fields": [
-                    {
-                      "name": "outcome",
-                      "expression": "`outcome`"
-                    },
-                    {
-                      "name": "count(*)",
-                      "expression": "COUNT(`*`)"
-                    },
-                    {
-                      "name": "dimension",
-                      "expression": "`dimension`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "bar",
-              "encodings": {
-                "x": {
-                  "fieldName": "count(*)",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "displayName": "Count of Records"
-                },
-                "y": {
-                  "fieldName": "dimension",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "axis": {
-                    "hideTitle": true,
-                    "hideLabels": false
-                  },
-                  "displayName": "dimension"
-                },
-                "color": {
-                  "fieldName": "outcome",
-                  "scale": {
-                    "type": "categorical",
-                    "mappings": [
-                      {
-                        "value": "Good",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 3
-                        }
-                      },
-                      {
-                        "value": "Acceptable",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 2
-                        }
-                      },
-                      {
-                        "value": "Not Acceptable",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 4
-                        }
-                      }
-                    ],
-                    "sort": {
-                      "by": "custom-order",
-                      "orderedValues": [
-                        "Not Acceptable",
-                        "Acceptable",
-                        "Good"
-                      ]
-                    }
-                  },
-                  "legend": {
-                    "hideTitle": true,
-                    "hide": false
-                  },
-                  "displayName": "outcome"
-                },
-                "label": {
-                  "show": false
-                }
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Rule Outcomes by Dimension"
-              },
-              "mark": {
-                "layout": "stack"
-              }
-            }
-          },
-          "position": {
-            "x": 4,
-            "y": 9,
-            "width": 2,
-            "height": 4
-          }
-        },
-        {
-          "widget": {
-            "name": "21c59326",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "5eaea984",
-                  "fields": [
-                    {
-                      "name": "value",
-                      "expression": "`value`"
-                    },
-                    {
-                      "name": "label",
-                      "expression": "`label`"
-                    }
-                  ],
-                  "filters": [
-                    {
-                      "expression": "`dimension` IN ('VALIDITY')"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "pie",
-              "encodings": {
-                "angle": {
-                  "fieldName": "value",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "axis": {
-                    "hideTitle": true
-                  },
-                  "format": {
-                    "type": "number-plain",
-                    "abbreviation": "compact",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  },
-                  "displayName": "value"
-                },
-                "color": {
-                  "fieldName": "label",
-                  "scale": {
-                    "type": "categorical",
-                    "mappings": [
-                      {
-                        "value": "Fail",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 4
-                        }
-                      },
-                      {
-                        "value": "Pass",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 3
-                        }
-                      }
-                    ]
-                  },
-                  "legend": {
-                    "hideTitle": true,
-                    "hide": true
-                  },
-                  "displayName": "label"
-                },
-                "label": {
-                  "show": true
-                },
-                "extra": [
-                  {
-                    "fieldName": "value",
-                    "displayName": "value"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Validity Rate"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 9,
-            "width": 1,
-            "height": 4
-          }
-        },
-        {
-          "widget": {
-            "name": "b4f2127d",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "5eaea984",
-                  "fields": [
-                    {
-                      "name": "value",
-                      "expression": "`value`"
-                    },
-                    {
-                      "name": "label",
-                      "expression": "`label`"
-                    }
-                  ],
-                  "filters": [
-                    {
-                      "expression": "`dimension` IN ('COMPLETENESS')"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "pie",
-              "encodings": {
-                "angle": {
-                  "fieldName": "value",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "axis": {
-                    "hideTitle": true
-                  },
-                  "format": {
-                    "type": "number-plain",
-                    "abbreviation": "compact",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  },
-                  "displayName": "value"
-                },
-                "color": {
-                  "fieldName": "label",
-                  "scale": {
-                    "type": "categorical",
-                    "mappings": [
-                      {
-                        "value": "Fail",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 4
-                        }
-                      },
-                      {
-                        "value": "Pass",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 3
-                        }
-                      }
-                    ]
-                  },
-                  "legend": {
-                    "hideTitle": true,
-                    "hide": true
-                  },
-                  "displayName": "label"
-                },
-                "label": {
-                  "show": true
-                },
-                "extra": [
-                  {
-                    "fieldName": "value",
-                    "displayName": "value"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Completeness Rate"
-              }
-            }
-          },
-          "position": {
-            "x": 1,
-            "y": 9,
-            "width": 1,
-            "height": 4
-          }
-        },
-        {
-          "widget": {
-            "name": "749d7f6b",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "5eaea984",
-                  "fields": [
-                    {
-                      "name": "value",
-                      "expression": "`value`"
-                    },
-                    {
-                      "name": "label",
-                      "expression": "`label`"
-                    }
-                  ],
-                  "filters": [
-                    {
-                      "expression": "`dimension` IN ('CONSISTENCY')"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "pie",
-              "encodings": {
-                "angle": {
-                  "fieldName": "value",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "axis": {
-                    "hideTitle": true
-                  },
-                  "format": {
-                    "type": "number-plain",
-                    "abbreviation": "compact",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  },
-                  "displayName": "value"
-                },
-                "color": {
-                  "fieldName": "label",
-                  "scale": {
-                    "type": "categorical",
-                    "mappings": [
-                      {
-                        "value": "Fail",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 4
-                        }
-                      },
-                      {
-                        "value": "Pass",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 3
-                        }
-                      }
-                    ]
-                  },
-                  "legend": {
-                    "hideTitle": true,
-                    "hide": true
-                  },
-                  "displayName": "label"
-                },
-                "label": {
-                  "show": true
-                },
-                "extra": [
-                  {
-                    "fieldName": "value",
-                    "displayName": "value"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Consistency Rate"
-              }
-            }
-          },
-          "position": {
-            "x": 2,
-            "y": 9,
-            "width": 1,
-            "height": 4
-          }
-        },
-        {
-          "widget": {
-            "name": "6c72fd0d",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "5eaea984",
-                  "fields": [
-                    {
-                      "name": "value",
-                      "expression": "`value`"
-                    },
-                    {
-                      "name": "label",
-                      "expression": "`label`"
-                    }
-                  ],
-                  "filters": [
-                    {
-                      "expression": "`dimension` IN ('ACCURACY')"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "pie",
-              "encodings": {
-                "angle": {
-                  "fieldName": "value",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "axis": {
-                    "hideTitle": true
-                  },
-                  "format": {
-                    "type": "number-plain",
-                    "abbreviation": "compact",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  },
-                  "displayName": "value"
-                },
-                "color": {
-                  "fieldName": "label",
-                  "scale": {
-                    "type": "categorical",
-                    "mappings": [
-                      {
-                        "value": "Fail",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 4
-                        }
-                      },
-                      {
-                        "value": "Pass",
-                        "color": {
-                          "themeColorType": "visualizationColors",
-                          "position": 3
-                        }
-                      }
-                    ]
-                  },
-                  "legend": {
-                    "hideTitle": true,
-                    "hide": true
-                  },
-                  "displayName": "label"
-                },
-                "label": {
-                  "show": true
-                },
-                "extra": [
-                  {
-                    "fieldName": "value",
-                    "displayName": "value"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "title": " Accuracy Rate"
-              }
-            }
-          },
-          "position": {
-            "x": 3,
-            "y": 9,
-            "width": 1,
             "height": 4
           }
         }
