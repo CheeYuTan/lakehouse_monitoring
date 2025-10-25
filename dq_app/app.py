@@ -1,12 +1,38 @@
 """
 Data Quality Self-Service Portal - Main Application
 """
+import os
 import pandas as pd
 from dash import Dash, dcc, html, callback, Input, Output, State, dash_table, ALL, ctx, no_update
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
-import config
 import db_utils
+
+# ========== CONFIGURATION ==========
+# Read from environment variables defined in app.yaml
+
+# Auto-provided by Databricks Apps
+DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
+
+# App-specific configuration (defined in app.yaml)
+CATALOG = os.getenv("CATALOG", "dbdemos_steventan")
+ADMIN_SCHEMA = os.getenv("ADMIN_SCHEMA", "monitoring_admin")
+DATA_SCHEMA = os.getenv("DATA_SCHEMA", "lakehouse_monitoring")
+OUT_SCHEMA = os.getenv("OUT_SCHEMA", "lakehouse_monitoring_demo_results")
+SQL_WAREHOUSE_ID = os.getenv("SQL_WAREHOUSE_ID", "862f1d757f0424f7")
+SQL_WAREHOUSE_HTTP_PATH = f"/sql/1.0/warehouses/{SQL_WAREHOUSE_ID}"
+DATABRICKS_ORG_ID = os.getenv("DATABRICKS_ORG_ID", "1444828305810485")
+DASHBOARD_ID = os.getenv("DASHBOARD_ID", "01f097746d9d1bbbbc0d7939c55bb781")
+
+# Construct dashboard URL
+if DATABRICKS_HOST:
+    host = DATABRICKS_HOST.replace("https://", "").replace("http://", "")
+    DASHBOARD_URL = os.getenv(
+        "DASHBOARD_URL",
+        f"https://{host}/embed/dashboardsv3/{DASHBOARD_ID}?o={DATABRICKS_ORG_ID}"
+    )
+else:
+    DASHBOARD_URL = os.getenv("DASHBOARD_URL", "")
 
 # Initialize the Dash app with Bootstrap styling
 dash_app = Dash(
@@ -87,7 +113,7 @@ def dashboard_layout():
                 dbc.Card([
                     dbc.CardBody([
                         html.Iframe(
-                            src=config.DASHBOARD_URL,
+                            src=DASHBOARD_URL,
                             style={
                                 'width': '100%',
                                 'height': '800px',
@@ -813,7 +839,7 @@ def edit_monitor_layout(catalog, schema, table):
         # Fetch the specific monitor data
         query = f"""
         SELECT *
-        FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.monitors_control
+        FROM {CATALOG}.{ADMIN_SCHEMA}.monitors_control
         WHERE table_catalog = '{catalog}'
           AND table_schema = '{schema}'
           AND table_name = '{table}'
@@ -1808,7 +1834,7 @@ def load_add_metric_form(is_open, pathname):
             templates_query = f"""
             SELECT template_name, description, dimension, 
                    good_threshold, acceptable_threshold, threshold_direction
-            FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_templates
+            FROM {CATALOG}.{ADMIN_SCHEMA}.metric_templates
             WHERE dimension IS NOT NULL
             ORDER BY dimension, template_name
             """
@@ -1874,7 +1900,7 @@ def generate_metric_form(template_name, catalog, schema, table):
         # Get template details including thresholds
         template_query = f"""
         SELECT mt.*, mt.definition_template
-        FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_templates mt
+        FROM {CATALOG}.{ADMIN_SCHEMA}.metric_templates mt
         WHERE mt.template_name = '{template_name}'
         """
         df_template = db_utils.execute_query(template_query)
@@ -2207,7 +2233,7 @@ def save_new_custom_metric(n_clicks, template_name, param_values, metric_name, g
         # Get template details to extract function name
         template_query = f"""
         SELECT definition_template 
-        FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_templates
+        FROM {CATALOG}.{ADMIN_SCHEMA}.metric_templates
         WHERE template_name = '{template_name}'
         """
         df_template = db_utils.execute_query(template_query)
@@ -2292,7 +2318,7 @@ def save_new_custom_metric(n_clicks, template_name, param_values, metric_name, g
             # Get detail template definition
             detail_template_query = f"""
             SELECT definition_template 
-            FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_templates
+            FROM {CATALOG}.{ADMIN_SCHEMA}.metric_templates
             WHERE template_name = '{detail_template_name}'
             """
             df_detail_template = db_utils.execute_query(detail_template_query)
@@ -3114,7 +3140,7 @@ def save_registered_table(n_clicks, catalog, schema, table, profile_type, timest
         
         # Insert into monitors_control
         insert_query = f"""
-        INSERT INTO {config.CATALOG}.{config.ADMIN_SCHEMA}.monitors_control
+        INSERT INTO {CATALOG}.{ADMIN_SCHEMA}.monitors_control
         (table_catalog, table_schema, table_name, profile_type, timestamp_col, granularities, schedule_cron, enabled)
         VALUES (
             '{catalog}',
@@ -3130,7 +3156,7 @@ def save_registered_table(n_clicks, catalog, schema, table, profile_type, timest
         
         print(f"📝 Insert query: {insert_query}")
         
-        connection = db_utils.get_connection(config.SQL_WAREHOUSE_HTTP_PATH)
+        connection = db_utils.get_connection(SQL_WAREHOUSE_HTTP_PATH)
         cursor = connection.cursor()
         cursor.execute(insert_query)
         connection.commit()

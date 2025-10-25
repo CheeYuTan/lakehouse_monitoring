@@ -5,12 +5,17 @@ https://apps-cookbook.dev/docs/dash/tables/tables_read
 """
 import pandas as pd
 import os
-import config
 from functools import lru_cache
 from databricks import sql
 from databricks.sdk.core import Config
 
 cfg = Config()  # Automatically configured in Databricks Apps
+
+# Configuration from environment variables
+CATALOG = os.getenv("CATALOG", "dbdemos_steventan")
+ADMIN_SCHEMA = os.getenv("ADMIN_SCHEMA", "monitoring_admin")
+SQL_WAREHOUSE_ID = os.getenv("SQL_WAREHOUSE_ID", "862f1d757f0424f7")
+SQL_WAREHOUSE_HTTP_PATH = f"/sql/1.0/warehouses/{SQL_WAREHOUSE_ID}"
 
 @lru_cache(maxsize=1)
 def get_connection(http_path):
@@ -38,10 +43,10 @@ def execute_query(query):
     try:
         print("⏳ Step 1: Getting SQL connection...")
         print(f"   Server: {cfg.host}")
-        print(f"   Warehouse: {config.SQL_WAREHOUSE_HTTP_PATH}")
+        print(f"   Warehouse: {SQL_WAREHOUSE_HTTP_PATH}")
         
         connection_start = time.time()
-        connection = get_connection(config.SQL_WAREHOUSE_HTTP_PATH)
+        connection = get_connection(SQL_WAREHOUSE_HTTP_PATH)
         connection_time = time.time() - connection_start
         print(f"✅ Connection ready in {connection_time:.2f}s")
             
@@ -94,7 +99,7 @@ def get_monitors_control():
         granularities as Granularities,
         schedule_cron as Schedule,
         enabled as Status
-    FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.monitors_control
+    FROM {CATALOG}.{ADMIN_SCHEMA}.monitors_control
     ORDER BY table_schema, table_name
     """
     return execute_query(query)
@@ -110,7 +115,7 @@ def get_metric_templates():
         threshold_direction,
         good_threshold,
         acceptable_threshold
-    FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_templates
+    FROM {CATALOG}.{ADMIN_SCHEMA}.metric_templates
     ORDER BY dimension, template_name
     """
     return execute_query(query)
@@ -125,7 +130,7 @@ def get_metric_bindings():
         metric_name,
         template_name,
         enabled
-    FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings
+    FROM {CATALOG}.{ADMIN_SCHEMA}.metric_bindings
     ORDER BY table_schema, table_name, metric_name
     """
     return execute_query(query)
@@ -141,8 +146,8 @@ def get_bindings_with_templates():
         mt.dimension,
         mt.description,
         mb.enabled
-    FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings mb
-    LEFT JOIN {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_templates mt
+    FROM {CATALOG}.{ADMIN_SCHEMA}.metric_bindings mb
+    LEFT JOIN {CATALOG}.{ADMIN_SCHEMA}.metric_templates mt
         ON mb.template_name = mt.template_name
     ORDER BY mb.table_schema, mb.table_name, mt.dimension
     """
@@ -161,7 +166,7 @@ def get_all_metric_names_for_table(table_schema, table_name):
     """
     query = f"""
     SELECT metric_name
-    FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings
+    FROM {CATALOG}.{ADMIN_SCHEMA}.metric_bindings
     WHERE table_schema = '{table_schema}'
       AND table_name = '{table_name}'
     ORDER BY metric_name
@@ -202,7 +207,7 @@ def get_function_definition(function_name):
     
     query = f"""
     SELECT routine_definition, routine_schema, routine_name
-    FROM {config.CATALOG}.information_schema.routines
+    FROM {CATALOG}.information_schema.routines
     WHERE routine_name = '{func_name_only}'
        OR CONCAT(routine_schema, '.', routine_name) = '{function_name}'
     LIMIT 1
@@ -237,8 +242,8 @@ def get_function_parameters(function_name):
         p.parameter_name,
         p.data_type,
         p.ordinal_position
-    FROM {config.CATALOG}.information_schema.parameters p
-    JOIN {config.CATALOG}.information_schema.routines r 
+    FROM {CATALOG}.information_schema.parameters p
+    JOIN {CATALOG}.information_schema.routines r 
         ON p.specific_name = r.specific_name
     WHERE (r.routine_name = '{func_name_only}'
        OR CONCAT(r.routine_schema, '.', r.routine_name) = '{function_name}')
@@ -278,8 +283,8 @@ def get_custom_metrics_for_table(table_schema, table_name, include_details=False
         mb.enabled as Status,
         mb.input_columns as `Input Columns`,
         mb.params as `Parameters`
-    FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings mb
-    LEFT JOIN {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_templates mt
+    FROM {CATALOG}.{ADMIN_SCHEMA}.metric_bindings mb
+    LEFT JOIN {CATALOG}.{ADMIN_SCHEMA}.metric_templates mt
         ON mb.template_name = mt.template_name
     WHERE mb.table_schema = '{table_schema}'
         AND mb.table_name = '{table_name}'
@@ -321,8 +326,8 @@ def get_detail_metric_for_ratio(table_schema, table_name, ratio_metric_name):
         mb.enabled as Status,
         mb.input_columns as `Input Columns`,
         mb.params as `Parameters`
-    FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings mb
-    LEFT JOIN {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_templates mt
+    FROM {CATALOG}.{ADMIN_SCHEMA}.metric_bindings mb
+    LEFT JOIN {CATALOG}.{ADMIN_SCHEMA}.metric_templates mt
         ON mb.template_name = mt.template_name
     WHERE mb.table_schema = '{table_schema}'
         AND mb.table_name = '{table_name}'
@@ -377,7 +382,7 @@ def update_monitor_control(catalog, schema, table, updates):
         set_clause = ", ".join(set_clauses)
         
         query = f"""
-        UPDATE {config.CATALOG}.{config.ADMIN_SCHEMA}.monitors_control
+        UPDATE {CATALOG}.{ADMIN_SCHEMA}.monitors_control
         SET {set_clause}
         WHERE table_catalog = '{catalog}'
           AND table_schema = '{schema}'
@@ -387,7 +392,7 @@ def update_monitor_control(catalog, schema, table, updates):
         print(f"📝 Update query: {query}")
         
         start_time = time.time()
-        connection = get_connection(config.SQL_WAREHOUSE_HTTP_PATH)
+        connection = get_connection(SQL_WAREHOUSE_HTTP_PATH)
         
         with connection.cursor() as cursor:
             cursor.execute(query)
@@ -426,16 +431,16 @@ def get_dq_functions():
         p.data_type as parameter_type,
         p.comment as parameter_comment,
         p.ordinal_position
-    FROM {config.CATALOG}.information_schema.routines r
-    LEFT JOIN {config.CATALOG}.information_schema.parameters p
+    FROM {CATALOG}.information_schema.routines r
+    LEFT JOIN {CATALOG}.information_schema.parameters p
         ON r.specific_name = p.specific_name
-    WHERE r.routine_schema = '{config.ADMIN_SCHEMA}'
+    WHERE r.routine_schema = '{ADMIN_SCHEMA}'
       AND r.routine_type = 'FUNCTION'
       AND r.routine_name != 'build_dq_all_metrics_view_from_meta'
     ORDER BY r.routine_name, p.ordinal_position
     """
     
-    print(f"\n🔍 Fetching DQ functions from {config.CATALOG}.{config.ADMIN_SCHEMA}...")
+    print(f"\n🔍 Fetching DQ functions from {CATALOG}.{ADMIN_SCHEMA}...")
     print(f"📝 Query: {query}")
     return execute_query(query)
 
@@ -574,11 +579,11 @@ def save_custom_metric(schema, table, metric_name, function_name, input_columns,
         # Insert into metric_bindings table
         # Always use array(':table') for input_columns, actual columns go in params
         bindings_query = f"""
-        INSERT INTO {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings
+        INSERT INTO {CATALOG}.{ADMIN_SCHEMA}.metric_bindings
         (table_catalog, table_schema, table_name, metric_name, template_name, 
          metric_type, output_spark_type, input_columns, params, enabled)
         VALUES (
-            '{config.CATALOG}',
+            '{CATALOG}',
             '{schema}',
             '{table}',
             '{metric_name}',
@@ -593,7 +598,7 @@ def save_custom_metric(schema, table, metric_name, function_name, input_columns,
         
         print(f"📝 Insert bindings query: {bindings_query}")
         
-        connection = get_connection(config.SQL_WAREHOUSE_HTTP_PATH)
+        connection = get_connection(SQL_WAREHOUSE_HTTP_PATH)
         cursor = connection.cursor()
         cursor.execute(bindings_query)
         connection.commit()
@@ -624,7 +629,7 @@ def delete_custom_metric(table_schema, table_name, metric_name):
     try:
         print(f"\n🗑️ Deleting custom metric: {metric_name}")
         
-        connection = get_connection(config.SQL_WAREHOUSE_HTTP_PATH)
+        connection = get_connection(SQL_WAREHOUSE_HTTP_PATH)
         cursor = connection.cursor()
         
         # First, find any associated detail metrics
@@ -640,7 +645,7 @@ def delete_custom_metric(table_schema, table_name, metric_name):
         
         # Delete the ratio metric
         delete_ratio_query = f"""
-        DELETE FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings
+        DELETE FROM {CATALOG}.{ADMIN_SCHEMA}.metric_bindings
         WHERE table_schema = '{table_schema}'
           AND table_name = '{table_name}'
           AND metric_name = '{metric_name}'
@@ -655,7 +660,7 @@ def delete_custom_metric(table_schema, table_name, metric_name):
         rows_affected_detail = 0
         if detail_metric_name:
             delete_detail_query = f"""
-            DELETE FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings
+            DELETE FROM {CATALOG}.{ADMIN_SCHEMA}.metric_bindings
             WHERE table_schema = '{table_schema}'
               AND table_name = '{table_name}'
               AND metric_name = '{detail_metric_name}'
@@ -672,7 +677,7 @@ def delete_custom_metric(table_schema, table_name, metric_name):
         # So we verify deletion by checking if the metric still exists
         verify_query = f"""
         SELECT COUNT(*) as count
-        FROM {config.CATALOG}.{config.ADMIN_SCHEMA}.metric_bindings
+        FROM {CATALOG}.{ADMIN_SCHEMA}.metric_bindings
         WHERE table_schema = '{table_schema}'
           AND table_name = '{table_name}'
           AND metric_name = '{metric_name}'
