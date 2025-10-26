@@ -405,8 +405,6 @@ This architecture ensures your data quality monitoring scales effortlessly as yo
 - **Anomaly Detection** - ML-based quality trend analysis
 ---
 
-## 🤝 Contributing
-
 To extend this framework:
 
 1. **Add DQ Functions** - Create new SQL UDFs in `04_lakehouse_monitoring_functions.ipynb`
