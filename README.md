@@ -413,5 +413,5 @@ To extend this framework:
 4. **Update Docs** - Keep documentation in sync with changes
 
 ---
-> ⭐ **Star this repo** and follow for **v0.5 — Anomaly Detection & Advanced Alerting**
+> ⭐ **Star this repo** and follow for **v0.5 — Anomaly Detection
 
